@@ -1,8 +1,11 @@
-﻿using ArkLight.Util;
-using Newtonsoft.Json;
+﻿
+
 using System;
 using System.IO;
 using System.Threading;
+
+using ArkLight.Util;
+using Newtonsoft.Json;
 
 using MagneticPositioningGUI.Utils.JsonModels;
 
@@ -74,6 +77,8 @@ namespace MagneticPositioningGUI.Utils
 
         public AlgorithmPara AlgorithmPara { get; set; }
 
+        public UiConfig UiConfig { get; set; }
+
         /// <summary>
         /// 无参构造函数
         /// </summary>
@@ -81,6 +86,7 @@ namespace MagneticPositioningGUI.Utils
         {
             ComConfig = new ComConfig();
             AlgorithmPara = new AlgorithmPara();
+            UiConfig = new UiConfig();
         }
 
         /// <summary>

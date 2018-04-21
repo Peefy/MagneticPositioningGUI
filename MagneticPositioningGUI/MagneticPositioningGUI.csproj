@@ -78,11 +78,13 @@
     <Compile Include="Algorithms\Filter.cs" />
     <Compile Include="Algorithms\IMagPosResultProvider.cs" />
     <Compile Include="Algorithms\MagPosResultProvider.cs" />
+    <Compile Include="Communications\SerialPortBuilder.cs" />
     <Compile Include="Extensions\CMatrixExtension.cs" />
     <Compile Include="Models\ReceiveCoil.cs" />
     <Compile Include="Utils\JsonFileConfig.cs" />
     <Compile Include="Utils\JsonModels\AlgorithmPara.cs" />
     <Compile Include="Utils\JsonModels\ComConfig.cs" />
+    <Compile Include="Utils\JsonModels\UiConfig.cs" />
     <Compile Include="Utils\NumberUtil.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="App.xaml.cs">

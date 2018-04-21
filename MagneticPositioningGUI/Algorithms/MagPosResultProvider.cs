@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.IO.Ports;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +13,9 @@ using static System.Math;
 using MagneticPositioningGUI.Utils;
 using MagneticPositioningGUI.Models;
 using MagneticPositioningGUI.Extensions;
+using MagneticPositioningGUI.Communications;
+using System.Windows.Threading;
+using System.Threading;
 
 namespace MagneticPositioningGUI.Algorithms
 {
@@ -23,29 +28,42 @@ namespace MagneticPositioningGUI.Algorithms
         public const int YAxisIndex = 1;
         public const int ZAxisIndex = 2;
 
-        public Queue<byte> SerialBuffers { get; set; }
+        public int PackageLength { get; set; } = 13;
+
+        public int DealBuffersDeley { get; set; } = 10;
+
+        public Queue<byte> Buffers { get; set; }
 
         public bool IsRecievedData { get; set; } = false;
 
         public (float X, float Y, float Z, float Roll, float Yaw, float Pitch)
-            UnrecievedData => (0, 0, 0, 0, 0, 0);
+            UnrecievedData { get; set; } = (0, 0, 0, 0, 0, 0);
 
         public ReceiveCoil XCoil { get; set; }
         public ReceiveCoil YCoil { get; set; }
         public ReceiveCoil ZCoil { get; set; }
 
-        public CMatrix.Matrix AA { get; set; }
-        public CMatrix.Matrix XYZ { get; set; }
+        public CMatrix.Matrix AAMatrix { get; set; }
+        public CMatrix.Matrix XYZMatrix { get; set; }
 
         Filter filterPsi = new Filter();
         Filter filterPhi = new Filter();
         Filter filterTheta = new Filter();
+        Filter filterx = new Filter();
+        Filter filtery = new Filter();
+        Filter filterz = new Filter();
 
         JsonFileConfig _config;
+        SerialPort serialPort;
+        Dispatcher _dip;
+        SynchronizationContext _ds;
+
         double constant;
         double Px, Py, Pz;
         double sumpxpypz;
         double rho;
+
+        double[] AA;
 
         double X1, Y1, Z1;
         private double arfa;
@@ -97,38 +115,70 @@ namespace MagneticPositioningGUI.Algorithms
         private double restheta2_2;
         private double betia1;
         private double betia;
-        private int flag3;
 
         public MagPosResultProvider()
         {
             _config = JsonFileConfig.Instance;
-            SerialBuffers = new Queue<byte>();
+            AA = new double[9];
+            Buffers = new Queue<byte>();
+            DealBuffersDeley = _config.ComConfig.DealBuffersDeley;
+            PackageLength = _config.ComConfig.PackageLength;
             XCoil = new ReceiveCoil();
             YCoil = new ReceiveCoil();
             ZCoil = new ReceiveCoil();
-            XYZ = CMatrix.Matrix.Zeros(AxisCount);
-            AA = CMatrix.Matrix.Zeros(AxisCount);
-            AA.Data = _config.AlgorithmPara.AA;
+            XYZMatrix = CMatrix.Matrix.Zeros(AxisCount);
+            AAMatrix = CMatrix.Matrix.Zeros(AxisCount);
+            AAMatrix.Data = _config.AlgorithmPara.AA;
             constant = _config.AlgorithmPara.Constant;
+            UnrecievedData = (_config.UiConfig.UnrecievedDataX, _config.UiConfig.UnrecievedDataY,
+                _config.UiConfig.UnrecievedDataZ, _config.UiConfig.UnrecievedDataRoll,
+                _config.UiConfig.UnrecievedDataYaw, _config.UiConfig.UnrecievedDataPicth);
+            RenewAAInfo();
         }
 
-        public (float X, float Y, float Z, float Roll, float Yaw, float Pitch) Provide()
+        private void RenewAAInfo()
+        {
+            var datas = _config.AlgorithmPara.AA;
+            AA[0] = datas[0, 0];
+            AA[1] = datas[0, 1];
+            AA[2] = datas[0, 2];
+            AA[3] = datas[1, 0];
+            AA[4] = datas[1, 1];
+            AA[5] = datas[1, 2];
+            AA[6] = datas[2, 0];
+            AA[7] = datas[2, 1];
+            AA[8] = datas[2, 2];
+        }
+
+        public (float X, float Y, float Z, float Roll, float Yaw, float Pitch) ProvideInfo()
         {
             if (IsRecievedData == true)
             {
-                XYZ.Data = new double[AxisCount, AxisCount]
-                {
-                    { XCoil.X, XCoil.Y, XCoil.Z },
-                    { YCoil.X, YCoil.Y, YCoil.Z },
-                    { ZCoil.X, ZCoil.Y, ZCoil.Z },
-                };
-                XYZ = XYZ * AA;
-                Xx = XCoil.X; Xy = XCoil.Y; Xz = XCoil.Z;
-                Yx = YCoil.X; Yy = YCoil.Y; Yz = YCoil.Z;
-                Zx = ZCoil.X; Zy = ZCoil.Y; Zz = ZCoil.Z;
-                Px = NumberUtil.SumSquare(XYZ.GetColumnElements(XAxisIndex));
-                Py = NumberUtil.SumSquare(XYZ.GetColumnElements(YAxisIndex));
-                Pz = NumberUtil.SumSquare(XYZ.GetColumnElements(ZAxisIndex));
+                Xx = XCoil.X;
+                Xy = YCoil.X;
+                Xz = ZCoil.X;
+                Yx = XCoil.Y;
+                Yy = YCoil.Y;
+                Yz = ZCoil.Z;
+                Zx = XCoil.Z;
+                Zy = YCoil.Z;
+                Zz = ZCoil.Z;
+
+                Xx = Xx * AA[0] + Xy * AA[1] + Xz * AA[2];
+                Yx = Yx * AA[0] + Yy * AA[1] + Yz * AA[2];
+                Zx = Zx * AA[0] + Zy * AA[1] + Zz * AA[2];
+
+                Xy = Xx * AA[3] + Xy * AA[4] + Xz * AA[5];
+                Yy = Yx * AA[3] + Yy * AA[4] + Yz * AA[5];
+                Zy = Zx * AA[3] + Zy * AA[4] + Zz * AA[5];
+
+                Xz = Xx * AA[6] + Xy * AA[7] + Xz * AA[8];
+                Yz = Yx * AA[6] + Yy * AA[7] + Yz * AA[8];
+                Zz = Zx * AA[6] + Zy * AA[7] + Zz * AA[8];
+
+                Px = NumberUtil.SumSquare(XYZMatrix.GetColumnElements(XAxisIndex));
+                Py = NumberUtil.SumSquare(XYZMatrix.GetColumnElements(YAxisIndex));
+                Pz = NumberUtil.SumSquare(XYZMatrix.GetColumnElements(ZAxisIndex));
                 sumpxpypz = Px + Py + Pz;
                 rho = 1.5 * constant * constant / sumpxpypz;
                 rho = Math.Pow(rho, 0.166667);
@@ -169,7 +219,7 @@ namespace MagneticPositioningGUI.Algorithms
                     arfa = arfa1;
                 }
                 if ((sn_arfa > 0) && (cn_arfa < 0))
-                { 
+                {
                     X1 = -X1;
                     //Y1 = Y1;
                     Z1 = -Z1;
@@ -213,7 +263,6 @@ namespace MagneticPositioningGUI.Algorithms
                 psi_1 = Atan(Abs(A12 / A11)) / PI * 180;
                 phi_1 = Atan(Abs(A23 / A33)) / PI * 180;
                 theta_2 = -Asin(A13) / PI * 180;
-                flag3 = 0;
                 if ((A12 > 0) && (A11 > 0))
                 {
                     //psi_1 = psi_1;
@@ -255,8 +304,130 @@ namespace MagneticPositioningGUI.Algorithms
                 respsi_2 = psi_1;
                 resphi_2 = phi_1;
                 restheta2_2 = theta_2;
+
+                X1 = X1 * 1000;
+                Y1 = Y1 * 1000;
+                Z1 = Z1 * 1000;
+                X1 = filterx.Run(X1);
+                Y1 = filtery.Run(Y1);
+                Z1 = filterz.Run(Z1);
+                var x = NumberUtil.MathRoundWithDigit(X1);
+                var y = NumberUtil.MathRoundWithDigit(Y1);
+                var z = NumberUtil.MathRoundWithDigit(Z1);
+                var roll = NumberUtil.MathRoundWithDigit(psi_1);
+                var yaw = NumberUtil.MathRoundWithDigit(phi_1);
+                var pitch = NumberUtil.MathRoundWithDigit(theta_2);
+                return (x, y, z, roll, yaw, pitch);
             }
             return UnrecievedData;
+        }
+
+        public bool StartProvide()
+        {
+            _dip = Dispatcher.CurrentDispatcher;
+            _ds = new DispatcherSynchronizationContext();
+            serialPort = new SerialPortBuilder().FromJsonFile();
+            Buffers = new Queue<byte>();
+            string[] ports = SerialPort.GetPortNames();
+            Array.Sort(ports);
+            if (ports.Length >= 2)
+            {
+                serialPort.PortName = ports[1];
+            }
+            else
+            {
+                serialPort.PortName = ports.FirstOrDefault();
+            }
+            serialPort.DataReceived -= SerialPortDataReceived;
+            serialPort.DataReceived += SerialPortDataReceived;
+            try
+            {
+                OpenPort();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void SerialPortDataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            var bytesNum = serialPort.BytesToRead;
+            byte[] buffers = new byte[bytesNum];
+            serialPort.Read(buffers, 0, bytesNum);
+            for (var i = 0; i < bytesNum; ++i)
+                Buffers.Enqueue(buffers[i]);
+            IsRecievedData = true;
+        }
+
+        public void OpenPort()
+        {
+            serialPort?.Open();
+            Task.Run(() =>
+            {
+                try
+                {
+                    var flag = false;
+                    var compara = _config.ComConfig;
+                    while (true)
+                    {
+                        if (Buffers.Count >= PackageLength)
+                        {
+                            if (Buffers.Dequeue() == compara.StartRecieveFlag)
+                            {
+                                flag = true;
+                            }
+                            if(flag == true)
+                            {
+                                var coil = new ReceiveCoil();
+                                var data = Buffers.Dequeue();
+                                if (data == compara.XCoilFlag)
+                                {
+                                    coil = XCoil;
+                                }
+                                else if (data == compara.YCoilFlag)
+                                {
+                                    coil = YCoil;
+                                }
+                                else if (data == compara.ZCoilFlag)
+                                {
+                                    coil = ZCoil;
+                                }
+                                coil.X = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
+                                coil.Y = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
+                                coil.Z = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
+                                flag = false;
+                            }
+                        }
+                        Thread.Sleep(DealBuffersDeley);
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            });
+        }
+
+        public bool StopProvide()
+        {
+            try
+            {
+                IsRecievedData = false;
+                if (serialPort != null)
+                {
+                    serialPort.Close();
+                    serialPort.Dispose();
+                    serialPort = null;           
+                }               
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
         }
     }
 }

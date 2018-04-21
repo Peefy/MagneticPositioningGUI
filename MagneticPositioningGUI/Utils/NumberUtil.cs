@@ -23,6 +23,23 @@ namespace MagneticPositioningGUI.Utils
             return sum;
         }
 
+        public static float MathRoundWithDigit(double value, int digit = 2)
+        {
+            return (float)Math.Round(value, digit);
+        }
+
+        public static float FourBytesToDoubleFromQueue(Queue<byte> queue)
+        {
+            byte[] bytes =
+            {
+                queue.Dequeue(),
+                queue.Dequeue(),
+                queue.Dequeue(),
+                queue.Dequeue(),
+            };
+            return BitConverter.ToSingle(bytes, 0);
+        }
+
     }
 
 }
