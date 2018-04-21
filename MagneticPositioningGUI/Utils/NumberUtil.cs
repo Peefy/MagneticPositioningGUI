@@ -40,6 +40,24 @@ namespace MagneticPositioningGUI.Utils
             return BitConverter.ToSingle(bytes, 0);
         }
 
+        public static string EulerAnglesToQuaternion(float roll, float yaw, float pitch)
+        {
+            var cosRoll = Math.Cos(roll * 0.017453 * 0.5);
+            var sinRoll = Math.Sin(roll * 0.017453 * 0.5);
+
+            var cosPitch = Math.Cos(pitch * 0.017453 * 0.5);
+            var sinPitch = Math.Sin(pitch * 0.017453 * 0.5f);
+
+            var cosHeading = Math.Cos(yaw * 0.017453 * 0.5f);
+            var sinHeading = Math.Sin(yaw * 0.017453 * 0.5f);
+
+            var q0 = cosRoll * cosPitch * cosHeading + sinRoll * sinPitch * sinHeading;
+            var q1 = sinRoll * cosPitch * cosHeading - cosRoll * sinPitch * sinHeading;
+            var q2 = cosRoll * sinPitch * cosHeading + sinRoll * cosPitch * sinHeading;
+            var q3 = cosRoll * cosPitch * sinHeading - sinRoll * sinPitch * cosHeading;
+            return $"{q0} {q1} {q2} {q3}";
+        }
+
     }
 
 }

@@ -130,6 +130,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Matrix.dll" />
+    <Resource Include="Resources\Back.png" />
+    <Resource Include="Resources\Bottom.png" />
+    <Resource Include="Resources\Front.png" />
+    <Resource Include="Resources\Left.png" />
+    <Resource Include="Resources\Right.png" />
+    <Resource Include="Resources\Top.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

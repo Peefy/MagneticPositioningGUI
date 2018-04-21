@@ -8,6 +8,9 @@ namespace MagneticPositioningGUI.Utils.JsonModels
         [JsonProperty("title")]
         public string Title { get; set; } = "全空间磁定位";
 
+        [JsonProperty("scaleFactor")]
+        public float ScaleFactor { get; set; } = 1.5f;
+
         [JsonProperty("uiRefreshDeley")]
         public int UiRefreshDeley { get; set; } = 20;
 

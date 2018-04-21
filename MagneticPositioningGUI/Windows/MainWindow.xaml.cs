@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 
 using MahApps.Metro.Controls;
 
+using MagneticPositioningGUI.Utils;
 using MagneticPositioningGUI.ViewModels;
 
 namespace MagneticPositioningGUI.Windows
@@ -23,10 +24,21 @@ namespace MagneticPositioningGUI.Windows
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
+
+        public MainWindowViewModel ViewModel { get; set; }
+
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainWindowViewModel();
+            ViewModel = new MainWindowViewModel();
+            DataContext = ViewModel;
+        }
+
+        private void MetroWindow_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var factor = JsonFileConfig.Instance.UiConfig.ScaleFactor;
+            factor = factor - e.Delta / 120 * 0.1f;
+            ViewModel.UpdateScaleFactor(factor);
         }
     }
 }

@@ -134,6 +134,50 @@ namespace MagneticPositioningGUI.Algorithms
                 _config.UiConfig.UnrecievedDataZ, _config.UiConfig.UnrecievedDataRoll,
                 _config.UiConfig.UnrecievedDataYaw, _config.UiConfig.UnrecievedDataPicth);
             RenewAAInfo();
+            Task.Run(() =>
+            {
+                try
+                {
+                    var flag = false;
+                    var compara = _config.ComConfig;
+                    while (true)
+                    {
+                        if (Buffers.Count >= PackageLength)
+                        {
+                            if (Buffers.Dequeue() == compara.StartRecieveFlag)
+                            {
+                                flag = true;
+                            }
+                            if (flag == true)
+                            {
+                                var coil = new ReceiveCoil();
+                                var data = Buffers.Dequeue();
+                                if (data == compara.XCoilFlag)
+                                {
+                                    coil = XCoil;
+                                }
+                                else if (data == compara.YCoilFlag)
+                                {
+                                    coil = YCoil;
+                                }
+                                else if (data == compara.ZCoilFlag)
+                                {
+                                    coil = ZCoil;
+                                }
+                                coil.X = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
+                                coil.Y = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
+                                coil.Z = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
+                                flag = false;
+                            }
+                        }
+                        Thread.Sleep(DealBuffersDeley);
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            });
         }
 
         private void RenewAAInfo()
@@ -364,50 +408,6 @@ namespace MagneticPositioningGUI.Algorithms
         public void OpenPort()
         {
             serialPort?.Open();
-            Task.Run(() =>
-            {
-                try
-                {
-                    var flag = false;
-                    var compara = _config.ComConfig;
-                    while (true)
-                    {
-                        if (Buffers.Count >= PackageLength)
-                        {
-                            if (Buffers.Dequeue() == compara.StartRecieveFlag)
-                            {
-                                flag = true;
-                            }
-                            if(flag == true)
-                            {
-                                var coil = new ReceiveCoil();
-                                var data = Buffers.Dequeue();
-                                if (data == compara.XCoilFlag)
-                                {
-                                    coil = XCoil;
-                                }
-                                else if (data == compara.YCoilFlag)
-                                {
-                                    coil = YCoil;
-                                }
-                                else if (data == compara.ZCoilFlag)
-                                {
-                                    coil = ZCoil;
-                                }
-                                coil.X = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
-                                coil.Y = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
-                                coil.Z = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
-                                flag = false;
-                            }
-                        }
-                        Thread.Sleep(DealBuffersDeley);
-                    }
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
-            });
         }
 
         public bool StopProvide()

@@ -20,13 +20,6 @@ namespace MagneticPositioningGUI.ViewModels
         private int _uiRefreshDeley = 20;
         private JsonFileConfig _config;
 
-        private int _count;
-        public int Count
-        {
-            get => _count;
-            set => SetProperty(ref _count, value);
-        }
-
         private float _x;
         public float X
         {
@@ -69,9 +62,46 @@ namespace MagneticPositioningGUI.ViewModels
             set => SetProperty(ref _pitch, value);
         }
 
-        public Command ClickCommand { get; set; }
+        private string _quaternion = "0,1,0,0";
+        public string Quaternion
+        {
+            get => _quaternion;
+            set => SetProperty(ref _quaternion, value);
+        }
+
+        private float _scaleFactor = 1.5f;
+        public float ScaleFactor
+        {
+            get => _scaleFactor;
+            set => SetProperty(ref _scaleFactor, value);
+        }
+
+        private string _statusText = "无数据";
+        public string StatusText
+        {
+            get => _statusText;
+            set => SetProperty(ref _statusText, value);
+        }
+
+        private string _controlButtonText = "开始";
+        public string ControlButtonText
+        {
+            get => _controlButtonText;
+            set => SetProperty(ref _controlButtonText, value);
+        }
+
+        private bool _isStart = false;
+        public bool IsStart
+        {
+            get => _isStart;
+            set => SetProperty(ref _isStart, value);
+        }
 
         public IMagPosResultProvider ResultProvider { get; set; }
+
+        public Task ProvideTask { get; set; }
+
+        public Command ClickCommand { get; set; }
 
         public MainWindowViewModel()
         {
@@ -79,18 +109,56 @@ namespace MagneticPositioningGUI.ViewModels
             _uiRefreshDeley = _config.UiConfig.UiRefreshDeley;
             Title = _config.UiConfig.Title;
             ResultProvider = ServiceLocator.Instance.Get<IMagPosResultProvider>();
+            ClickCommand = new Command(ControlButtonEvent);
+            UpdateScaleFactor();
             Task.Run(() =>
             {
-                while(true)
+                while (true)
                 {
-                    (X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfo();
-                    Thread.Sleep(_uiRefreshDeley);
+                    if (IsStart == true)
+                    {
+                        //(X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfo();
+                        X = -1.0f;
+                        Y = -1.0f;
+                        Z = -1.0f;
+                        //++Roll;
+                        if (++Yaw >= 180)
+                            Yaw = -180;
+                        Quaternion = Utils.NumberUtil.EulerAnglesToQuaternion(Roll, Yaw, Pitch);
+                        StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";
+                        Thread.Sleep(_uiRefreshDeley);
+                    }
                 }
-            });        
-            ClickCommand = new Command(() =>
-            {
-                Count++;
             });
-        }        
+        }
+
+        public void ControlButtonEvent()
+        {
+            if (IsStart == true)
+            {
+                ResultProvider.StopProvide();
+                IsStart = false;
+            }
+            else
+            {
+                ResultProvider.StartProvide();
+                IsStart = true;
+            }
+            ControlButtonText = IsStart == true ? "停止" : "开始";
+        }
+
+        public void UpdateScaleFactor()
+        {
+            ScaleFactor = JsonFileConfig.Instance.UiConfig.ScaleFactor;
+        }
+
+        public void UpdateScaleFactor(float factor)
+        {
+            if (factor < 0.4)
+                return;
+            ScaleFactor = factor;
+            JsonFileConfig.Instance.UiConfig.ScaleFactor = factor;
+        }
+
     }
 }
