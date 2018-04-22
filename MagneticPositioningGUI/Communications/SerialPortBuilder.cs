@@ -18,7 +18,7 @@ namespace MagneticPositioningGUI.Communications
             {
                 return new SerialPort()
                 {
-                    BaudRate = 9600,
+                    BaudRate = 256000,
                     Parity = Parity.None,
                     DataBits = 8,
                     StopBits = StopBits.One,

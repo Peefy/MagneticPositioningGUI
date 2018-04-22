@@ -15,25 +15,22 @@ namespace MagneticPositioningGUI.Utils.JsonModels
         public string PortName { get; set; } = "COM4";
 
         [JsonProperty("buadRate")]
-        public int BuadRate { get; set; } = 9600;
+        public int BuadRate { get; set; } = 256000;
 
         [JsonProperty("startRecieveFlag")]
         public byte StartRecieveFlag { get; set; } = 127;
 
-        [JsonProperty("xCoilFlag")]
-        public byte XCoilFlag { get; set; } = 146;
-
-        [JsonProperty("yCoilFlag")]
-        public byte YCoilFlag { get; set; } = 147;
-
-        [JsonProperty("zCoilFlag")]
-        public byte ZCoilFlag { get; set; } = 148;
+        [JsonProperty("N93Flag")]
+        public byte N93Flag { get; set; } = 146;
 
         [JsonProperty("packageLength")]
-        public int PackageLength { get; set; } = 13;
+        public int PackageLength { get; set; } = 48;
 
         [JsonProperty("dealBuffersDeley")]
         public int DealBuffersDeley { get; set; } = 10;
+
+        [JsonProperty("packetRecieveUpCount")]
+        public int PacketRecieveUpCount { get; set; } = 300;
 
     }
 

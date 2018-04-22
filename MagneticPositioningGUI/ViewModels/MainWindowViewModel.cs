@@ -20,65 +20,65 @@ namespace MagneticPositioningGUI.ViewModels
         private int _uiRefreshDeley = 20;
         private JsonFileConfig _config;
 
-        private float _cameraX;
-        public float CameraX
+        private double _cameraX;
+        public double CameraX
         {
             get => _cameraX;
             set => SetProperty(ref _cameraX, value);
         }
 
 
-        private float _cameraY;
-        public float CameraY
+        private double _cameraY;
+        public double CameraY
         {
             get => _cameraY;
             set => SetProperty(ref _cameraY, value);
         }
 
-        private float _cameraZ;
-        public float CameraZ
+        private double _cameraZ;
+        public double CameraZ
         {
             get => _cameraZ;
             set => SetProperty(ref _cameraZ, value);
         }
         
-        private float _x;
-        public float X
+        private double _x;
+        public double X
         {
             get => _x;
             set => SetProperty(ref _x, value);
         }
 
-        private float _y;
-        public float Y
+        private double _y;
+        public double Y
         {
             get => _y;
             set => SetProperty(ref _y, value);
         }
 
-        private float _z;
-        public float Z
+        private double _z;
+        public double Z
         {
             get => _z;
             set => SetProperty(ref _z, value);
         }
 
-        private float _roll;
-        public float Roll
+        private double _roll;
+        public double Roll
         {
             get => _roll;
             set => SetProperty(ref _roll, value);
         }
 
-        private float _yaw;
-        public float Yaw
+        private double _yaw;
+        public double Yaw
         {
             get => _yaw;
             set => SetProperty(ref _yaw, value);
         }
 
-        private float _pitch;
-        public float Pitch
+        private double _pitch;
+        public double Pitch
         {
             get => _pitch;
             set => SetProperty(ref _pitch, value);
@@ -119,6 +119,8 @@ namespace MagneticPositioningGUI.ViewModels
             set => SetProperty(ref _isStart, value);
         }
 
+        public bool IsDemo { get; set; }
+
         public IMagPosResultProvider ResultProvider { get; set; }
 
         public Task ProvideTask { get; set; }
@@ -129,26 +131,36 @@ namespace MagneticPositioningGUI.ViewModels
         {
             _config = JsonFileConfig.Instance;
             _uiRefreshDeley = _config.UiConfig.UiRefreshDeley;
+            IsDemo = _config.UiConfig.IsDemo;
             Title = _config.UiConfig.Title;
             ResultProvider = ServiceLocator.Instance.Get<IMagPosResultProvider>();
             ClickCommand = new Command(ControlButtonEvent);
             UpdateScaleFactor();
             Task.Run(() =>
             {
+                var i = 0;
                 while (true)
                 {
+                    
                     if (IsStart == true)
                     {
-                        //(X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfo();
-                        X = -1.0f;
-                        Y = -1.0f;
-                        Z = -1.0f;
-                        //++Roll;
-                        if (++Yaw >= 180)
-                            Yaw = -180;
+                        if(IsDemo == false)
+                        {
+                            (X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfo();
+                        }
+                        else
+                        {
+                            i++;
+                            X = Math.Sin(i / 10.0);
+                            Y = Math.Cos(i / 10.0);
+                            Z = 0;
+                            if (++Yaw >= 180)
+                                Yaw = -180;
+                            Thread.Sleep(_uiRefreshDeley);
+                        }
                         Quaternion = Utils.NumberUtil.EulerAnglesToQuaternion(Roll, Yaw, Pitch);
                         StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";
-                        Thread.Sleep(_uiRefreshDeley);
+                        
                     }
                 }
             });
@@ -171,7 +183,7 @@ namespace MagneticPositioningGUI.ViewModels
 
         public void UpdateScaleFactor()
         {
-            ScaleFactor = JsonFileConfig.Instance.UiConfig.ScaleFactor;
+            ScaleFactor = _config.UiConfig.ScaleFactor;
         }
 
         public void UpdateScaleFactor(float factor)
@@ -179,7 +191,7 @@ namespace MagneticPositioningGUI.ViewModels
             if (factor < 0.4)
                 return;
             ScaleFactor = factor;
-            JsonFileConfig.Instance.UiConfig.ScaleFactor = factor;
+            _config.UiConfig.ScaleFactor = factor;
         }
 
     }

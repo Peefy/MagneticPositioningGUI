@@ -32,6 +32,9 @@ namespace MagneticPositioningGUI.Utils.JsonModels
         [JsonProperty("unrecievedDataPitch")]
         public float UnrecievedDataPicth { get; set; } = 0.1f;
 
+        [JsonProperty("isDemo")]
+        public bool IsDemo { get; set; } = false;
+
     }
 
 }

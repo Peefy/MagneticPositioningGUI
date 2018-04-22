@@ -37,10 +37,10 @@ namespace MagneticPositioningGUI.Utils
                 queue.Dequeue(),
                 queue.Dequeue(),
             };
-            return BitConverter.ToSingle(bytes, 0);
+            return (float)((bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + (bytes[3] << 0));
         }
 
-        public static string EulerAnglesToQuaternion(float roll, float yaw, float pitch)
+        public static string EulerAnglesToQuaternion(double roll, double yaw, double pitch)
         {
             var cosRoll = Math.Cos(roll * 0.017453 * 0.5);
             var sinRoll = Math.Sin(roll * 0.017453 * 0.5);

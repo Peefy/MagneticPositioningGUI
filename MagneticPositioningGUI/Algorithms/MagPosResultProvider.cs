@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Windows.Threading;
+using System.Threading;
 using System.IO.Ports;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +16,6 @@ using MagneticPositioningGUI.Utils;
 using MagneticPositioningGUI.Models;
 using MagneticPositioningGUI.Extensions;
 using MagneticPositioningGUI.Communications;
-using System.Windows.Threading;
-using System.Threading;
 
 namespace MagneticPositioningGUI.Algorithms
 {
@@ -28,9 +28,9 @@ namespace MagneticPositioningGUI.Algorithms
         public const int YAxisIndex = 1;
         public const int ZAxisIndex = 2;
 
-        public int PackageLength { get; set; } = 13;
+        public int PackageLength { get; set; } = 48;
 
-        public int DealBuffersDeley { get; set; } = 10;
+        public int DealBuffersDeley { get; set; } = 1;
 
         public Queue<byte> Buffers { get; set; }
 
@@ -38,6 +38,8 @@ namespace MagneticPositioningGUI.Algorithms
 
         public (float X, float Y, float Z, float Roll, float Yaw, float Pitch)
             UnrecievedData { get; set; } = (0, 0, 0, 0, 0, 0);
+
+        public int PacketRecieveUpCount { get; set; } = 20;
 
         public ReceiveCoil XCoil { get; set; }
         public ReceiveCoil YCoil { get; set; }
@@ -57,6 +59,11 @@ namespace MagneticPositioningGUI.Algorithms
         SerialPort serialPort;
         //Dispatcher _dip;
         //SynchronizationContext _ds;
+
+        int N93Rows = 4;
+        int N93Columns = 3;
+
+        double[,] N93;
 
         double constant;
         double Px, Py, Pz;
@@ -87,7 +94,7 @@ namespace MagneticPositioningGUI.Algorithms
         private double A12a;
         private double A12b;
 
-        private double A12c; 
+        private double A12c;
 
         private double A12;
         private double A23a;
@@ -102,7 +109,7 @@ namespace MagneticPositioningGUI.Algorithms
         private double A13a;
         private double A13b;
         private double A13c;
-        private double A13; 
+        private double A13;
 
         private double psi_1;
         private double phi_1;
@@ -115,17 +122,28 @@ namespace MagneticPositioningGUI.Algorithms
         private double restheta2_2;
         private double betia1;
         private double betia;
+        private int count = 0;
+        private int flag = 0;
+        private int flag2 = 0;
+        private int[,] F4set2 = new int[3, 3]
+        {
+            {1,1,-1 },
+            {1,1,-1 },
+            {-1,-1,-1 },
+        };
 
         public MagPosResultProvider()
         {
             _config = JsonFileConfig.Instance;
+            N93 = new double[N93Rows, N93Columns];
             AA = new double[9];
-            Buffers = new Queue<byte>();
-            DealBuffersDeley = _config.ComConfig.DealBuffersDeley;
-            PackageLength = _config.ComConfig.PackageLength;
+            Buffers = new Queue<byte>();         
             XCoil = new ReceiveCoil();
             YCoil = new ReceiveCoil();
             ZCoil = new ReceiveCoil();
+            DealBuffersDeley = _config.ComConfig.DealBuffersDeley;
+            PackageLength = _config.ComConfig.PackageLength;
+            PacketRecieveUpCount = _config.ComConfig.PacketRecieveUpCount;
             XYZMatrix = CMatrix.Matrix.Zeros(AxisCount);
             AAMatrix = CMatrix.Matrix.Zeros(AxisCount);
             AAMatrix.Data = _config.AlgorithmPara.AA;
@@ -140,37 +158,34 @@ namespace MagneticPositioningGUI.Algorithms
                 {
                     var flag = false;
                     var compara = _config.ComConfig;
+                    var packetRecieveCount = 0;
                     while (true)
                     {
-                        if (Buffers.Count >= PackageLength)
+                        if (Buffers.Count == 0)
+                            continue;
+                        var q = 0;
+                        if (Buffers.Dequeue() == compara.StartRecieveFlag)
                         {
-                            if (Buffers.Dequeue() == compara.StartRecieveFlag)
+                            flag = true;
+                        }
+                        if (flag == true && Buffers.Dequeue() == compara.N93Flag)
+                        {
+                            if(Buffers.Count >= PackageLength)
                             {
-                                flag = true;
-                            }
-                            if (flag == true)
-                            {
-                                var coil = new ReceiveCoil();
-                                var data = Buffers.Dequeue();
-                                if (data == compara.XCoilFlag)
+                                for(var i = 0; i < N93Rows ;++i)
                                 {
-                                    coil = XCoil;
+                                    for (var j = 0; j < N93Columns; ++j)
+                                    {
+                                        N93[i, j] = NumberUtil.FourBytesToDoubleFromQueue(Buffers) / 100.0f;
+                                    }
                                 }
-                                else if (data == compara.YCoilFlag)
+                                if(++packetRecieveCount >= PacketRecieveUpCount)
                                 {
-                                    coil = YCoil;
-                                }
-                                else if (data == compara.ZCoilFlag)
-                                {
-                                    coil = ZCoil;
-                                }
-                                coil.X = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
-                                coil.Y = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
-                                coil.Z = NumberUtil.FourBytesToDoubleFromQueue(Buffers);
-                                flag = false;
+                                    IsRecievedData = true;
+                                }                            
                             }
                         }
-                        Thread.Sleep(DealBuffersDeley);
+                        //Thread.Sleep(DealBuffersDeley);
                     }
                 }
                 catch (Exception)
@@ -198,31 +213,57 @@ namespace MagneticPositioningGUI.Algorithms
         {
             if (IsRecievedData == true)
             {
-                Xx = XCoil.X;
-                Xy = YCoil.X;
-                Xz = ZCoil.X;
-                Yx = XCoil.Y;
-                Yy = YCoil.Y;
-                Yz = ZCoil.Z;
-                Zx = XCoil.Z;
-                Zy = YCoil.Z;
-                Zz = ZCoil.Z;
+                Xx = N93[0, 0];
+                Xy = N93[1, 0];
+                Xz = N93[2, 0];
+                Yx = N93[0, 1];
+                Yy = N93[1, 1];
+                Yz = N93[2, 1];
+                Zx = N93[0, 2];
+                Zy = N93[1, 2];
+                Zz = N93[2, 2];
+                //TX三轴标定
+                Xx = Xx * 6.892 / 4.228; Xy = Xy * 6.892 / 4.228; Xz = Xz * 6.892 / 4.228;
+                Yx = Yx * 6.892 / 5.545; Yy = Yy * 6.892 / 5.545; Yz = Yz * 6.892 / 5.545;
+                var F4 = new double[3,3]{{Xx, Yx, Zx},{Xy, Yy, Zy},{ Xz,Yz,Zz}};
+                Xx = Xx * Sign(F4set2[0, 0]); Yx = Yx * Sign(F4set2[0, 1]); Zx = Zx * Sign(F4set2[0, 2]);
+                Xy = Xy * Sign(F4set2[1, 0]); Yy = Yy * Sign(F4set2[1, 1]); Zy = Zy * Sign(F4set2[1, 2]);
+                Xz = Xz * Sign(F4set2[2, 0]); Yz = Yz * Sign(F4set2[2, 1]); Zz = Zz * Sign(F4set2[2, 2]);
+                // 符号矩阵
+                count++;
+                if ((count >= 500) && (flag == 0))
+                {
+                    // 预置点 alpha=45°； beta =10°
+                    for (int i = 0; i <= 2; i++)
+                    {
+                        for (int j = 0; j <= 2; j++)
+                        {
+                            if (F4[i, j] * F4set2[i, j] < 0)
+                            { F4set2[i, j] = -F4set2[i, j]; }
+                            else
+                            { F4set2[i, j] = F4set2[i, j]; }
+                        }
+                    }
+                    flag = 1;
+                    flag2 = 1;
 
-                Xx = Xx * AA[0] + Xy * AA[1] + Xz * AA[2];
-                Yx = Yx * AA[0] + Yy * AA[1] + Yz * AA[2];
-                Zx = Zx * AA[0] + Zy * AA[1] + Zz * AA[2];
 
-                Xy = Xx * AA[3] + Xy * AA[4] + Xz * AA[5];
-                Yy = Yx * AA[3] + Yy * AA[4] + Yz * AA[5];
-                Zy = Zx * AA[3] + Zy * AA[4] + Zz * AA[5];
+                }
+//                 Xx = Xx * AA[0] + Xy * AA[1] + Xz * AA[2];
+//                 Yx = Yx * AA[0] + Yy * AA[1] + Yz * AA[2];
+//                 Zx = Zx * AA[0] + Zy * AA[1] + Zz * AA[2];
+// 
+//                 Xy = Xx * AA[3] + Xy * AA[4] + Xz * AA[5];
+//                 Yy = Yx * AA[3] + Yy * AA[4] + Yz * AA[5];
+//                 Zy = Zx * AA[3] + Zy * AA[4] + Zz * AA[5];
+// 
+//                 Xz = Xx * AA[6] + Xy * AA[7] + Xz * AA[8];
+//                 Yz = Yx * AA[6] + Yy * AA[7] + Yz * AA[8];
+//                 Zz = Zx * AA[6] + Zy * AA[7] + Zz * AA[8];
 
-                Xz = Xx * AA[6] + Xy * AA[7] + Xz * AA[8];
-                Yz = Yx * AA[6] + Yy * AA[7] + Yz * AA[8];
-                Zz = Zx * AA[6] + Zy * AA[7] + Zz * AA[8];
-
-                Px = NumberUtil.SumSquare(XYZMatrix.GetColumnElements(XAxisIndex));
-                Py = NumberUtil.SumSquare(XYZMatrix.GetColumnElements(YAxisIndex));
-                Pz = NumberUtil.SumSquare(XYZMatrix.GetColumnElements(ZAxisIndex));
+                Px = NumberUtil.SumSquare(Xx,Xy,Xz);
+                Py = NumberUtil.SumSquare(Yx,Yy,Yz);
+                Pz = NumberUtil.SumSquare(Zx,Zy,Zz);
                 sumpxpypz = Px + Py + Pz;
                 rho = 1.5 * constant * constant / sumpxpypz;
                 rho = Math.Pow(rho, 0.166667);
@@ -265,7 +306,7 @@ namespace MagneticPositioningGUI.Algorithms
                 if ((sn_arfa > 0) && (cn_arfa < 0))
                 {
                     X1 = -X1;
-                    //Y1 = Y1;
+                   // Y1 = Y1;
                     Z1 = -Z1;
                     arfa = 180.0 - arfa1;
                 }
@@ -278,15 +319,15 @@ namespace MagneticPositioningGUI.Algorithms
                 }
                 if ((sn_arfa < 0) && (cn_arfa > 0))
                 {
-                    //X1 = X1;
+                  //  X1 = X1;
                     Y1 = -Y1;
                     Z1 = -Z1;
                     arfa = 360.0 - arfa1;
                 }
                 arfa1 = arfa / 180 * PI;
-                A11a = (Yx * Math.Pow(rho, 3) * (Math.Cos(arfa1) * Math.Pow(Math.Cos(betia1), 2) * Math.Sin(arfa1) + 2 * Math.Cos(arfa1) * Math.Pow(Math.Cos(betia1), 4) * Math.Sin(arfa1) - 2 * Math.Cos(arfa1) * Math.Sin(arfa1) * Math.Pow(Math.Sin(betia1), 2) + 2 * Math.Cos(arfa1) * Math.Sin(arfa1) * Math.Pow(Math.Sin(betia1), 4) + 4 * Math.Cos(arfa1) * Math.Pow(Math.Cos(betia1), 2) * Math.Sin(arfa1) * Math.Pow(Math.Sin(betia1), 2))) / (constant * ((Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 4) + Pow(Cos(arfa1), 4) * Pow(Sin(betia1), 4) + Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 4) + Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + 2 * Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 2) * Pow(Sin(betia1), 2) + 2 * Pow(Cos(arfa1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 2) + 4 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))));
-                A11b = (Xx * Math.Pow(rho, 3) * (2 * Math.Pow(Math.Cos(arfa1), 2) * Math.Pow(Math.Sin(betia1), 2) - Math.Pow(Math.Cos(arfa1), 2) * Pow(Cos(betia1), 2) + 2 * Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + 2 * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 4 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))) / (constant * ((Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 4) + Pow(Cos(arfa1), 4) * Pow(Sin(betia1), 4) + Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 4) + Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + 2 * Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 2) * Pow(Sin(betia1), 2) + 2 * Pow(Cos(arfa1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 2) + 4 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))));
-                A11c = (3 * Zx * Math.Pow(rho, 3) * Math.Cos(arfa1) * Math.Cos(betia1) * Math.Sin(betia1)) / (constant * ((Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 4) + Pow(Cos(arfa1), 2) * Pow(Sin(betia1), 4) + Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) * Pow(Sin(betia1), 2) + 2 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))));
+                A11a = (Yx * Pow(rho, 3) * (Cos(arfa1) * Pow(Math.Cos(betia1), 2) * Sin(arfa1) + 2 * Cos(arfa1) * Pow(Cos(betia1), 4) * Sin(arfa1) - 2 * Cos(arfa1) * Sin(arfa1) * Pow(Sin(betia1), 2) + 2 * Cos(arfa1) * Sin(arfa1) * Pow(Math.Sin(betia1), 4) + 4 * Math.Cos(arfa1) * Math.Pow(Math.Cos(betia1), 2) * Math.Sin(arfa1) * Math.Pow(Math.Sin(betia1), 2))) / (constant * ((Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 4) + Pow(Cos(arfa1), 4) * Pow(Sin(betia1), 4) + Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 4) + Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + 2 * Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 2) * Pow(Sin(betia1), 2) + 2 * Pow(Cos(arfa1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 2) + 4 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))));
+                A11b = (Xx * Pow(rho, 3) * (2 * Pow(Cos(arfa1), 2) * Pow(Sin(betia1), 2) - Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) + 2 * Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + 2 * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 4 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))) / (constant * ((Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 4) + Pow(Cos(arfa1), 4) * Pow(Sin(betia1), 4) + Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 4) + Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + 2 * Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 2) * Pow(Sin(betia1), 2) + 2 * Pow(Cos(arfa1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 2) + 4 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))));
+                A11c = (3 * Zx * Pow(rho, 3) * Cos(arfa1) * Cos(betia1) * Sin(betia1)) / (constant * ((Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 4) + Pow(Cos(arfa1), 2) * Pow(Sin(betia1), 4) + Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) * Pow(Sin(betia1), 2) + 2 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))));
                 A11 = A11a - A11b - A11c;
                 A12a = (Xx * Pow(rho, 3) * (Cos(arfa1) * Pow(Cos(betia1), 2) * Sin(arfa1) + 2 * Cos(arfa1) * Pow(Cos(betia1), 4) * Sin(arfa1) - 2 * Cos(arfa1) * Sin(arfa1) * Pow(Sin(betia1), 2) + 2 * Cos(arfa1) * Sin(arfa1) * Pow(Sin(betia1), 4) + 4 * Cos(arfa1) * Pow(Cos(betia1), 2) * Sin(arfa1) * Pow(Sin(betia1), 2))) / (constant * ((Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 4) + Pow(Cos(arfa1), 4) * Pow(Sin(betia1), 4) + Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 4) + Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + 2 * Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 2) * Pow(Sin(betia1), 2) + 2 * Pow(Cos(arfa1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 2) + 4 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))));
                 A12b = (Yx * Pow(rho, 3) * (2 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 4) - Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) + 2 * Pow(Cos(arfa1), 2) * Pow(Sin(betia1), 4) + 2 * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2) + 4 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) * Pow(Sin(betia1), 2))) / (constant * ((Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 4) + Pow(Cos(arfa1), 4) * Pow(Sin(betia1), 4) + Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 4) + Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 4) * Pow(Sin(arfa1), 2) + 2 * Pow(Cos(arfa1), 4) * Pow(Cos(betia1), 2) * Pow(Sin(betia1), 2) + 2 * Pow(Cos(arfa1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 4) + 2 * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 4) * Pow(Sin(betia1), 2) + 4 * Pow(Cos(arfa1), 2) * Pow(Cos(betia1), 2) * Pow(Sin(arfa1), 2) * Pow(Sin(betia1), 2))));
@@ -349,12 +390,12 @@ namespace MagneticPositioningGUI.Algorithms
                 resphi_2 = phi_1;
                 restheta2_2 = theta_2;
 
-                X1 = X1 * 1000;
-                Y1 = Y1 * 1000;
-                Z1 = Z1 * 1000;
-                X1 = filterx.Run(X1);
-                Y1 = filtery.Run(Y1);
-                Z1 = filterz.Run(Z1);
+                // X1 = filterx.Run(X1);
+                // Y1 = filtery.Run(Y1);
+                // Z1 = filterz.Run(Z1);
+                X1 *= 5;
+                Y1 *= 5;
+                Z1 *= 5;
                 var x = NumberUtil.MathRoundWithDigit(X1);
                 var y = NumberUtil.MathRoundWithDigit(Y1);
                 var z = NumberUtil.MathRoundWithDigit(Z1);
@@ -378,7 +419,7 @@ namespace MagneticPositioningGUI.Algorithms
             {
                 serialPort.PortName = ports[1];
             }
-            else
+            else if(ports.Length == 1)
             {
                 serialPort.PortName = ports.FirstOrDefault();
             }
@@ -402,7 +443,6 @@ namespace MagneticPositioningGUI.Algorithms
             serialPort.Read(buffers, 0, bytesNum);
             for (var i = 0; i < bytesNum; ++i)
                 Buffers.Enqueue(buffers[i]);
-            IsRecievedData = true;
         }
 
         public void OpenPort()
