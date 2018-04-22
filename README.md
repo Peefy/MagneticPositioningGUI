@@ -1,5 +1,7 @@
 # MagneticPositioningGUI
 
+A host computer software used to show magnetic positioning result.
+
 ## Nuget 
 
 * *ArkLight* [Github](https://github.com/Peefy/ArkLight)
