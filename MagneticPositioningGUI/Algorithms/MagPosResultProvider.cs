@@ -55,8 +55,8 @@ namespace MagneticPositioningGUI.Algorithms
 
         JsonFileConfig _config;
         SerialPort serialPort;
-        Dispatcher _dip;
-        SynchronizationContext _ds;
+        //Dispatcher _dip;
+        //SynchronizationContext _ds;
 
         double constant;
         double Px, Py, Pz;
@@ -239,20 +239,20 @@ namespace MagneticPositioningGUI.Algorithms
                 f33 = f33 / sumpxpypz;
                 ff = f33 - 1.0;
                 ff = Abs(ff) / 3.0;
-                ff = Math.Pow(ff, 0.50);
+                ff = Pow(ff, 0.50);
 
                 betia = Asin(ff) / PI * 180;
                 f23 = 6 * (Zx * Yx + Zy * Yy + Zz * Yz);
                 f23 = f23 / sumpxpypz;
                 f13 = 6 * (Zx * Xx + Zy * Xy + Zz * Xz);
                 f13 = f13 / sumpxpypz;
-                sn_arfa = -f23 / (3 * Math.Sin(betia / 180.0 * PI) * Math.Cos(betia / 180.0 * PI));
-                cn_arfa = -f13 / (3 * Math.Sin(betia / 180.0 * PI) * Math.Cos(betia / 180.0 * PI));
+                sn_arfa = -f23 / (3 * Sin(betia / 180.0 * PI) * Cos(betia / 180.0 * PI));
+                cn_arfa = -f13 / (3 * Sin(betia / 180.0 * PI) * Cos(betia / 180.0 * PI));
 
                 rho1 = X1 * X1 + Y1 * Y1;
-                rho1 = Math.Pow(rho1, 0.5);
+                rho1 = Pow(rho1, 0.5);
                 rho2 = X1 * X1 + Y1 * Y1 + Z1 * Z1;
-                rho2 = Math.Pow(rho2, 0.5);
+                rho2 = Pow(rho2, 0.5);
                 arfa1 = Acos(X1 / rho1) / PI * 180;
                 betia1 = Acos(rho1 / rho2);
                 if ((sn_arfa > 0) && (cn_arfa > 0))
@@ -368,8 +368,8 @@ namespace MagneticPositioningGUI.Algorithms
 
         public bool StartProvide()
         {
-            _dip = Dispatcher.CurrentDispatcher;
-            _ds = new DispatcherSynchronizationContext();
+            //_dip = Dispatcher.CurrentDispatcher;
+            //_ds = new DispatcherSynchronizationContext();
             serialPort = new SerialPortBuilder().FromJsonFile();
             Buffers = new Queue<byte>();
             string[] ports = SerialPort.GetPortNames();

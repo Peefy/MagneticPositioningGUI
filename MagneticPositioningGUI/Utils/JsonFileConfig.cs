@@ -73,10 +73,13 @@ namespace MagneticPositioningGUI.Utils
             }
         }
 
+        [JsonProperty("comConfig")]
         public ComConfig ComConfig { get; set; }
 
+        [JsonProperty("algorithmPara")]
         public AlgorithmPara AlgorithmPara { get; set; }
 
+        [JsonProperty("uiConfig")]
         public UiConfig UiConfig { get; set; }
 
         /// <summary>

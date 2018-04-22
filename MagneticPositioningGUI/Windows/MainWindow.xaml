@@ -313,6 +313,10 @@
                                 ScaleX="{Binding ScaleFactor}"
                                 ScaleY="{Binding ScaleFactor}"
                                 ScaleZ="{Binding ScaleFactor}" />
+                            <TranslateTransform3D
+                                OffsetX="{Binding CameraX}"
+                                OffsetY="{Binding CameraY}"
+                                OffsetZ="{Binding CameraZ}" />
                         </Transform3DGroup>
                     </PerspectiveCamera.Transform>
                 </PerspectiveCamera>

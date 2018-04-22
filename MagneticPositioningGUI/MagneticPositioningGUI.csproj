@@ -32,6 +32,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ArkLight, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ArkLight.0.0.3\lib\net45\ArkLight.dll</HintPath>
@@ -129,6 +132,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="icon.ico" />
     <Content Include="Matrix.dll" />
     <Resource Include="Resources\Back.png" />
     <Resource Include="Resources\Bottom.png" />

@@ -20,6 +20,28 @@ namespace MagneticPositioningGUI.ViewModels
         private int _uiRefreshDeley = 20;
         private JsonFileConfig _config;
 
+        private float _cameraX;
+        public float CameraX
+        {
+            get => _cameraX;
+            set => SetProperty(ref _cameraX, value);
+        }
+
+
+        private float _cameraY;
+        public float CameraY
+        {
+            get => _cameraY;
+            set => SetProperty(ref _cameraY, value);
+        }
+
+        private float _cameraZ;
+        public float CameraZ
+        {
+            get => _cameraZ;
+            set => SetProperty(ref _cameraZ, value);
+        }
+        
         private float _x;
         public float X
         {
