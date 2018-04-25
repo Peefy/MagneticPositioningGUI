@@ -24,7 +24,6 @@ namespace MagneticPositioningGUI.ViewModels
             set => SetProperty(ref _cameraX, value);
         }
 
-
         private double _cameraY;
         public double CameraY
         {
