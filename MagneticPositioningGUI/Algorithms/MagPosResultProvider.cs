@@ -29,7 +29,7 @@ namespace MagneticPositioningGUI.Algorithms
         public const int YAxisIndex = 1;
         public const int ZAxisIndex = 2;
 
-        public int PackageLength { get; set; } = 48;
+        public int PackageLength { get; set; } = 50;
 
         public int DealBuffersDeley { get; set; } = 1;
 
@@ -423,13 +423,13 @@ namespace MagneticPositioningGUI.Algorithms
         int status = 0;
         private bool SerialDataDeal()
         {
-            if (serialPort.IsOpen == false)
+            if (serialPort?.IsOpen == false)
                 return false;
             var flag = false;
             var bytesNum = serialPort.BytesToRead;
             if(bytesNum > 0)
             {
-                byte[] buffers = new byte[2048];
+                byte[] buffers = new byte[PackageLength];
                 serialPort.Read(buffers, 0, 1);
                 switch(status)
                 {
@@ -443,7 +443,7 @@ namespace MagneticPositioningGUI.Algorithms
                         if(buffers[0] == compara.N93Flag)
                         {
                             bytesNum = serialPort.BytesToRead;
-                            if(bytesNum <= 48)
+                            if(bytesNum <= PackageLength - 2)
                             {
                                 status = 0;
                                 break;
@@ -574,8 +574,6 @@ namespace MagneticPositioningGUI.Algorithms
         double[,] F42 = { {1,1,1},{1,1,1},{1,1,1} };
         double[,] F4_set = { {1,1,-1},{ 1,1,-1 },{ -1,-1,-1 } };
         //double Px, Py, Pz, sumpxpypz;
-
-        
 
         public (float X, float Y, float Z, float Roll, float Yaw, float Pitch) ProvideInfoV2()
         {
@@ -762,6 +760,9 @@ namespace MagneticPositioningGUI.Algorithms
                 data.X = NumberUtil.MathRoundWithDigit(xfinal * 10);
                 data.Y = NumberUtil.MathRoundWithDigit(yfinal * 10);
                 data.Z = NumberUtil.MathRoundWithDigit(zfinal * 10);
+                data.Roll = NumberUtil.MathRoundWithDigit(psi);
+                data.Yaw = NumberUtil.MathRoundWithDigit(theta);
+                data.Pitch = NumberUtil.MathRoundWithDigit(phi);
                 LastData = data;
             }
             return data;

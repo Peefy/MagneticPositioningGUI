@@ -1,17 +1,13 @@
 ﻿using System;
+using System.Windows;
 using System.Threading;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using ArkLight.Mvvm;
 using ArkLight.Service;
-using ArkLight.Util;
 
 using MagneticPositioningGUI.Utils;
 using MagneticPositioningGUI.Algorithms;
-using System.Windows;
 
 namespace MagneticPositioningGUI.ViewModels
 {
@@ -143,8 +139,7 @@ namespace MagneticPositioningGUI.ViewModels
             {
                 var i = 0;
                 while (true)
-                {
-                    
+                {    
                     if (IsStart == true)
                     {
                         if(IsDemo == false)
@@ -156,7 +151,7 @@ namespace MagneticPositioningGUI.ViewModels
                             }
                             else
                             {
-                                var result = ResultProvider.ProvideInfo();
+                                var result = ResultProvider.ProvideInfoV2();
                                 StatusText = $"X:{result.X};Y:{result.Y};Z:{result.Z};Roll:{result.Roll};Yaw:{result.Yaw};Pitch:{result.Pitch}";
                             }                      
                         }
@@ -171,9 +166,10 @@ namespace MagneticPositioningGUI.ViewModels
                             Thread.Sleep(_uiRefreshDeley);
                             StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";
                         }
-                        Quaternion = Utils.NumberUtil.EulerAnglesToQuaternion(Roll, Yaw, Pitch);
-                         
-                        
+                        if(IsUpdateUi == true)
+                        {
+                            Quaternion = Utils.NumberUtil.EulerAnglesToQuaternion(Roll, Yaw, Pitch);
+                        }
                     }
                 }
             });

@@ -42,14 +42,8 @@ namespace MagneticPositioningGUI.Utils
 
         public static float FourBytesToDoubleFromQueue(byte[] queue, int startindex)
         {
-            byte[] bytes =
-            {
-                queue[startindex],
-                queue[startindex + 1],
-                queue[startindex + 2],
-                queue[startindex + 3]
-            };
-            return (float)((bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + (bytes[3] << 0));
+            return (float)((queue[startindex] << 24) + (queue[startindex + 1] << 16) + 
+                (queue[startindex + 2] << 8) + (queue[startindex + 3] << 0));
         }
 
         public static string EulerAnglesToQuaternion(double roll, double yaw, double pitch)
