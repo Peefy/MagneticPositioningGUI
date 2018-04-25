@@ -146,7 +146,9 @@ namespace MagneticPositioningGUI.ViewModels
                     {
                         if(IsDemo == false)
                         {
-                            (X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfo();
+                            (X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfoV2();
+                            //var result = ResultProvider.ProvideInfo();
+                            //StatusText = $"X:{result.X};Y:{result.Y};Z:{result.Z};Roll:{result.Roll};Yaw:{result.Yaw};Pitch:{result.Pitch}";
                         }
                         else
                         {
@@ -159,7 +161,7 @@ namespace MagneticPositioningGUI.ViewModels
                             Thread.Sleep(_uiRefreshDeley);
                         }
                         Quaternion = Utils.NumberUtil.EulerAnglesToQuaternion(Roll, Yaw, Pitch);
-                        StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";
+                        StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";  
                         
                     }
                 }

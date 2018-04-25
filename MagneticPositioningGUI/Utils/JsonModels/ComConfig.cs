@@ -30,7 +30,7 @@ namespace MagneticPositioningGUI.Utils.JsonModels
         public int DealBuffersDeley { get; set; } = 10;
 
         [JsonProperty("packetRecieveUpCount")]
-        public int PacketRecieveUpCount { get; set; } = 300;
+        public int PacketRecieveUpCount { get; set; } = 20;
 
     }
 

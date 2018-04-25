@@ -81,6 +81,7 @@
     <Compile Include="Algorithms\Filter.cs" />
     <Compile Include="Algorithms\IMagPosResultProvider.cs" />
     <Compile Include="Algorithms\MagPosResultProvider.cs" />
+    <Compile Include="Algorithms\MatrixHelper.cs" />
     <Compile Include="Communications\SerialPortBuilder.cs" />
     <Compile Include="Extensions\CMatrixExtension.cs" />
     <Compile Include="Models\ReceiveCoil.cs" />
