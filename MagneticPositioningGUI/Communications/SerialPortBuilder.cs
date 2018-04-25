@@ -37,6 +37,7 @@ namespace MagneticPositioningGUI.Communications
             var serialport = Default;
             serialport.BaudRate = baudrate;
             serialport.PortName = portname;
+            serialport.ReadBufferSize = 400;
             return serialport;
         }
     }

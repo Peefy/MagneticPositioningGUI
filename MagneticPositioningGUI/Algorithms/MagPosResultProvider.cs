@@ -13,6 +13,7 @@ using System.Windows.Media.Media3D;
 using static System.Math;
 
 using MagneticPositioningGUI.Utils;
+using MagneticPositioningGUI.Utils.JsonModels;
 using MagneticPositioningGUI.Models;
 using MagneticPositioningGUI.Extensions;
 using MagneticPositioningGUI.Communications;
@@ -59,6 +60,7 @@ namespace MagneticPositioningGUI.Algorithms
         Filter filterz = new Filter();
 
         JsonFileConfig _config;
+        ComConfig compara;
         SerialPort serialPort;
         //Dispatcher _dip;
         //SynchronizationContext _ds;
@@ -135,11 +137,10 @@ namespace MagneticPositioningGUI.Algorithms
             {-1,-1,-1 },
         };
 
-        bool isFullPacket = false;
-
         public MagPosResultProvider()
         {
             _config = JsonFileConfig.Instance;
+            compara = _config.ComConfig;
             N93 = new double[N93Rows, N93Columns];
             AA = new double[9];
             Buffers = new Queue<byte>();         
@@ -219,7 +220,9 @@ namespace MagneticPositioningGUI.Algorithms
 
         public (float X, float Y, float Z, float Roll, float Yaw, float Pitch) ProvideInfo()
         {
-            //SerialDataDeal();
+            var serialflag = SerialDataDeal();
+            if (serialflag == false)
+                return LastData;
             if (IsRecievedData == true)
             {
                 Xx = N93[0, 0];
@@ -411,35 +414,60 @@ namespace MagneticPositioningGUI.Algorithms
                 var roll = NumberUtil.MathRoundWithDigit(psi_1);
                 var yaw = NumberUtil.MathRoundWithDigit(phi_1);
                 var pitch = NumberUtil.MathRoundWithDigit(theta_2);
-                return (x, y, z, roll, yaw, pitch);
+                LastData = (x, y, z, roll, yaw, pitch);
+                return LastData;
             }
             return UnrecievedData;
         }
 
-        private void SerialDataDeal()
+        int status = 0;
+        private bool SerialDataDeal()
         {
+            if (serialPort.IsOpen == false)
+                return false;
             var flag = false;
-            var compara = _config.ComConfig;
-            var packetRecieveCount = 0;
-
             var bytesNum = serialPort.BytesToRead;
             if(bytesNum > 0)
             {
-                byte[] buffers = new byte[bytesNum];
-                if (flag == false)
+                byte[] buffers = new byte[2048];
+                serialPort.Read(buffers, 0, 1);
+                switch(status)
                 {
-                    serialPort.Read(buffers, 0, 1);
-                    if (buffers[0] == compara.StartRecieveFlag)
-                    {
-                        flag = true;
-                    }
+                    case 0:
+                        if(buffers[0] == compara.StartRecieveFlag)
+                        {
+                            status = 7;
+                        }
+                        break;
+                    case 7:
+                        if(buffers[0] == compara.N93Flag)
+                        {
+                            bytesNum = serialPort.BytesToRead;
+                            if(bytesNum <= 48)
+                            {
+                                status = 0;
+                                break;
+                            }
+                            flag = true;
+                            serialPort.Read(buffers, 0, 48);
+                            var index = 0;
+                            for (var i = 0; i < N93Rows; ++i)
+                            {
+                                for (var j = 0; j < N93Columns; ++j)
+                                {
+                                    var data = NumberUtil.FourBytesToDoubleFromQueue(buffers, index) / 100.0f;
+                                    N93[i, j] = data;
+                                    index += 4;
+                                }
+                            }
+                            IsRecievedData = true;
+                        }
+                        break;
+                    default:break;
                 }
-                else
-                {
-
-                }            
+                          
             }
-
+            return flag;
         }
 
         public bool StartProvide()
@@ -458,8 +486,8 @@ namespace MagneticPositioningGUI.Algorithms
             {
                 serialPort.PortName = ports.FirstOrDefault();
             }
-            serialPort.DataReceived -= SerialPortDataReceived;
-            serialPort.DataReceived += SerialPortDataReceived;
+            //serialPort.DataReceived -= SerialPortDataReceived;
+            //serialPort.DataReceived += SerialPortDataReceived;
             try
             {
                 OpenPort();
@@ -551,6 +579,11 @@ namespace MagneticPositioningGUI.Algorithms
 
         public (float X, float Y, float Z, float Roll, float Yaw, float Pitch) ProvideInfoV2()
         {
+            var serialflag = SerialDataDeal();
+            if (serialflag == false)
+            {
+                return LastData;
+            }            
             var data = UnrecievedData;
             F4_matrix[0, 0] = N93[0, 0];
             F4_matrix[0, 1] = N93[0, 1];

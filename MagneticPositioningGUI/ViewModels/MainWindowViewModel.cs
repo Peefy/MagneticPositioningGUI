@@ -11,6 +11,7 @@ using ArkLight.Util;
 
 using MagneticPositioningGUI.Utils;
 using MagneticPositioningGUI.Algorithms;
+using System.Windows;
 
 namespace MagneticPositioningGUI.ViewModels
 {
@@ -121,6 +122,8 @@ namespace MagneticPositioningGUI.ViewModels
 
         public bool IsDemo { get; set; }
 
+        public bool IsUpdateUi { get; set; } = true;
+
         public IMagPosResultProvider ResultProvider { get; set; }
 
         public Task ProvideTask { get; set; }
@@ -146,9 +149,16 @@ namespace MagneticPositioningGUI.ViewModels
                     {
                         if(IsDemo == false)
                         {
-                            (X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfoV2();
-                            //var result = ResultProvider.ProvideInfo();
-                            //StatusText = $"X:{result.X};Y:{result.Y};Z:{result.Z};Roll:{result.Roll};Yaw:{result.Yaw};Pitch:{result.Pitch}";
+                            if(IsUpdateUi == true)
+                            {
+                                (X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfoV2();
+                                StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";
+                            }
+                            else
+                            {
+                                var result = ResultProvider.ProvideInfo();
+                                StatusText = $"X:{result.X};Y:{result.Y};Z:{result.Z};Roll:{result.Roll};Yaw:{result.Yaw};Pitch:{result.Pitch}";
+                            }                      
                         }
                         else
                         {
@@ -159,9 +169,10 @@ namespace MagneticPositioningGUI.ViewModels
                             if (++Yaw >= 180)
                                 Yaw = -180;
                             Thread.Sleep(_uiRefreshDeley);
+                            StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";
                         }
                         Quaternion = Utils.NumberUtil.EulerAnglesToQuaternion(Roll, Yaw, Pitch);
-                        StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";  
+                         
                         
                     }
                 }
@@ -177,7 +188,11 @@ namespace MagneticPositioningGUI.ViewModels
             }
             else
             {
-                ResultProvider.StartProvide();
+                if(ResultProvider.StartProvide() == false)
+                {
+                    MessageBox.Show("串口打开失败！");
+                    return;
+                }
                 IsStart = true;
             }
             ControlButtonText = IsStart == true ? "停止" : "开始";
