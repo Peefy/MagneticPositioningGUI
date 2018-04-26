@@ -82,6 +82,9 @@ namespace MagneticPositioningGUI.Utils
         [JsonProperty("uiConfig")]
         public UiConfig UiConfig { get; set; }
 
+        [JsonProperty("plotConfig")]
+        public PlotConfig PlotConfig { get; set; }
+
         /// <summary>
         /// 无参构造函数
         /// </summary>
@@ -90,6 +93,7 @@ namespace MagneticPositioningGUI.Utils
             ComConfig = new ComConfig();
             AlgorithmPara = new AlgorithmPara();
             UiConfig = new UiConfig();
+            PlotConfig = new PlotConfig();
         }
 
         /// <summary>

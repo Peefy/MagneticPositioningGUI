@@ -15,11 +15,12 @@ using System.Windows.Shapes;
 
 using MahApps.Metro.Controls;
 
-using MagneticPositioningGUI.ViewModels;
-
 using Microsoft.Research.DynamicDataDisplay;
 using Microsoft.Research.DynamicDataDisplay.DataSources;
 using Microsoft.Research.DynamicDataDisplay.Charts.Axes;
+
+using MagneticPositioningGUI.Utils;
+using MagneticPositioningGUI.ViewModels;
 
 namespace MagneticPositioningGUI.Windows
 {
@@ -52,12 +53,28 @@ namespace MagneticPositioningGUI.Windows
         public ObservableDataSource<Point> PitchDataSource { get; set; }
             = new ObservableDataSource<Point>();
 
+        public bool IsAutoFit { get; set; } = true;
+
+        public int AutoFitCount { get; set; } = 200;
+
+        public double PlotTimerInterval { get; set; } = 0.05;
+
+        public int LineWidth { get; set; } = 2;
+
         public PlotWindow(PlotWindowViewModel viewModel)
         {
             InitializeComponent();
             ViewModel = viewModel;
             DataContext = ViewModel;
-            
+            RenewPlotConfig();
+        }
+
+        private void RenewPlotConfig()
+        {
+            var config = JsonFileConfig.ReadFromFile().PlotConfig;
+            AutoFitCount = config.AutoFitCount;
+            IsAutoFit = config.IsAutoFit;
+            PlotTimerInterval = config.PlotTimerInterval;
         }
 
         private void AnimatedPlot(object sender, EventArgs e)
@@ -68,8 +85,9 @@ namespace MagneticPositioningGUI.Windows
             RollDataSource.AppendAsync(base.Dispatcher, new Point(i, roll));
             YawDataSource.AppendAsync(base.Dispatcher, new Point(i, yaw));
             PitchDataSource.AppendAsync(base.Dispatcher, new Point(i, pitch));
-            i += 0.05;
-            if (i >= 10)
+            var count = XDataSource.Collection.Count;
+            i += PlotTimerInterval;
+            if (count >= AutoFitCount && IsAutoFit == true)
             {
                 XDataSource.Collection.RemoveAt(0);
                 YDataSource.Collection.RemoveAt(0);
@@ -84,13 +102,13 @@ namespace MagneticPositioningGUI.Windows
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            xplotter.AddLineGraph(XDataSource, Colors.BlueViolet, 2, "Value");
-            yplotter.AddLineGraph(YDataSource, Colors.BlueViolet, 2, "Value");
-            zplotter.AddLineGraph(ZDataSource, Colors.BlueViolet, 2, "Value");
-            rollplotter.AddLineGraph(RollDataSource, Colors.BlueViolet, 2, "Value");
-            yawplotter.AddLineGraph(YawDataSource, Colors.BlueViolet, 2, "Value");
-            pitchplotter.AddLineGraph(PitchDataSource, Colors.BlueViolet, 2, "Value");
-            timer.Interval = TimeSpan.FromMilliseconds(50);
+            xplotter.AddLineGraph(XDataSource, Colors.BlueViolet, LineWidth);
+            yplotter.AddLineGraph(YDataSource, Colors.BlueViolet, LineWidth);
+            zplotter.AddLineGraph(ZDataSource, Colors.BlueViolet, LineWidth);
+            rollplotter.AddLineGraph(RollDataSource, Colors.BlueViolet, LineWidth);
+            yawplotter.AddLineGraph(YawDataSource, Colors.BlueViolet, LineWidth);
+            pitchplotter.AddLineGraph(PitchDataSource, Colors.BlueViolet, LineWidth);
+            timer.Interval = TimeSpan.FromSeconds(PlotTimerInterval);
             timer.Tick += new EventHandler(AnimatedPlot);
             timer.IsEnabled = true;
             FitToView();
@@ -111,6 +129,10 @@ namespace MagneticPositioningGUI.Windows
             if(e.Key == Key.C)
             {
                 ClearPlotData();
+            }
+            if(e.Key == Key.Q)
+            {
+                IsAutoFit = !IsAutoFit;
             }
         }
 
