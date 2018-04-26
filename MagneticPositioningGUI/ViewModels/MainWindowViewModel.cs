@@ -8,6 +8,7 @@ using ArkLight.Service;
 
 using MagneticPositioningGUI.Utils;
 using MagneticPositioningGUI.Algorithms;
+using MagneticPositioningGUI.Windows;
 
 namespace MagneticPositioningGUI.ViewModels
 {
@@ -37,7 +38,28 @@ namespace MagneticPositioningGUI.ViewModels
             get => _cameraZ;
             set => SetProperty(ref _cameraZ, value);
         }
-        
+
+        private double _cameraRoll;
+        public double CameraRoll
+        {
+            get => _cameraRoll;
+            set => SetProperty(ref _cameraRoll, value);
+        }
+
+        private double _cameraYaw;
+        public double CameraYaw
+        {
+            get => _cameraYaw;
+            set => SetProperty(ref _cameraYaw, value);
+        }
+
+        private double _cameraPitch;
+        public double CameraPitch
+        {
+            get => _cameraPitch;
+            set => SetProperty(ref _cameraPitch, value);
+        }
+
         private double _x;
         public double X
         {
@@ -94,7 +116,7 @@ namespace MagneticPositioningGUI.ViewModels
             set => SetProperty(ref _scaleFactor, value);
         }
 
-        private string _statusText = "无数据";
+        private string _statusText = "";
         public string StatusText
         {
             get => _statusText;
@@ -125,6 +147,10 @@ namespace MagneticPositioningGUI.ViewModels
 
         public Command ClickCommand { get; set; }
 
+        public Command OpenPlotWindowCommand { get; set; }
+
+        public PlotWindow PlotWindow{ get; set; }
+
         public MainWindowViewModel()
         {
             _config = JsonFileConfig.Instance;
@@ -133,64 +159,93 @@ namespace MagneticPositioningGUI.ViewModels
             Title = _config.UiConfig.Title;
             ResultProvider = ServiceLocator.Instance.Get<IMagPosResultProvider>();
             ClickCommand = new Command(ControlButtonEvent);
+            OpenPlotWindowCommand = new Command(OpenPlotWindowEvent);
             UpdateScaleFactor();
+            LoadCameraData();
             Task.Run(() =>
             {
                 var i = 0;
                 while (true)
-                {    
+                {
                     if (IsStart == true)
                     {
-                        if(IsDemo == false)
+                        if (IsDemo == false)
                         {
-                            if(IsUpdateUi == true)
+                            if (IsUpdateUi == true)
                             {
                                 (X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfoV2();
+                                RenewStatusText(X, Y, Z, Roll, Yaw, Pitch);
                                 StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";
                             }
                             else
                             {
                                 var result = ResultProvider.ProvideInfoV2();
-                                StatusText = $"X:{result.X};Y:{result.Y};Z:{result.Z};Roll:{result.Roll};Yaw:{result.Yaw};Pitch:{result.Pitch}";
-                            }                      
+                                RenewStatusText(result.X, result.Y, result.Z,
+                                    result.Roll, result.Yaw, result.Pitch);                       
+                            }
                         }
                         else
                         {
                             i++;
-                            X = Math.Sin(i / 10.0);
-                            Y = Math.Cos(i / 10.0);
+                            X = Math.Round(Math.Sin(i / 10.0), 2);
+                            Y = Math.Round(Math.Cos(i / 10.0), 2);
                             Z = 0;
                             if (++Yaw >= 180)
                                 Yaw = -180;
                             Thread.Sleep(_uiRefreshDeley);
-                            StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";
+                            RenewStatusText(X, Y, Z, Roll, Yaw, Pitch);
                         }
-                        if(IsUpdateUi == true)
+                        if (IsUpdateUi == true)
                         {
-                            Quaternion = Utils.NumberUtil.EulerAnglesToQuaternion(Roll, Yaw, Pitch);
+                            Quaternion = NumberUtil.EulerAnglesToQuaternion(Roll, Pitch, Yaw);
                         }
                     }
                 }
             });
         }
 
+        public void RenewStatusText(double x, double y, double z, 
+            double roll, double yaw, double pitch)
+        {
+            StatusText = $"X:{x}\r\nY:{y}\r\nZ:{z}\r\nRoll:{roll}\r\nYaw:{yaw}\r\nPitch:{pitch}\r\n";
+            RenewPlotViewData(x, y, z, roll, yaw, pitch);
+        }
+
         public void ControlButtonEvent()
         {
             if (IsStart == true)
             {
-                ResultProvider.StopProvide();
+                if(IsDemo == false)
+                    ResultProvider.StopProvide();
                 IsStart = false;
             }
             else
             {
                 if(ResultProvider.StartProvide() == false)
                 {
-                    MessageBox.Show("串口打开失败！");
+                    if (IsDemo == false)
+                        MessageBox.Show("串口打开失败！");
+                    else
+                        IsStart = true;
                     return;
                 }
                 IsStart = true;
             }
             ControlButtonText = IsStart == true ? "停止" : "开始";
+        }
+
+        public void OpenPlotWindowEvent()
+        {
+            if(PlotWindow == null)
+                PlotWindow = new PlotWindow(new PlotWindowViewModel());
+            PlotWindow.Show();
+        }
+
+        public void RenewPlotViewData(double x, double y, double z, double roll, double yaw, double pitch)
+        {
+            if (PlotWindow == null)
+                return;
+            PlotWindow.AppendPlotData(x, y, z, roll, yaw, pitch);
         }
 
         public void UpdateScaleFactor()
@@ -204,6 +259,22 @@ namespace MagneticPositioningGUI.ViewModels
                 return;
             ScaleFactor = factor;
             _config.UiConfig.ScaleFactor = factor;
+        }
+
+        public void SaveCameraData()
+        {
+            var uiconfig = JsonFileConfig.Instance.UiConfig;
+            uiconfig.CameraPitch = CameraPitch;
+            uiconfig.CameraRoll = CameraRoll;
+            uiconfig.CameraYaw = CameraYaw;
+        }
+
+        public void LoadCameraData()
+        {
+            var uiconfig = JsonFileConfig.Instance.UiConfig;
+            CameraPitch = uiconfig.CameraPitch;
+            CameraRoll = uiconfig.CameraRoll;
+            CameraYaw = uiconfig.CameraYaw;
         }
 
     }

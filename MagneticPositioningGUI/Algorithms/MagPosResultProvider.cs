@@ -37,10 +37,10 @@ namespace MagneticPositioningGUI.Algorithms
 
         public bool IsRecievedData { get; set; } = false;
 
-        public (float X, float Y, float Z, float Roll, float Yaw, float Pitch)
+        public (double X, double Y, double Z, double Roll, double Yaw, double Pitch)
             UnrecievedData { get; set; } = (0, 0, 0, 0, 0, 0);
 
-        public (float X, float Y, float Z, float Roll, float Yaw, float Pitch)
+        public (double X, double Y, double Z, double Roll, double Yaw, double Pitch)
             LastData { get; set; } = (0, 0, 0, 0, 0, 0);
 
         public int PacketRecieveUpCount { get; set; } = 20;
@@ -218,7 +218,7 @@ namespace MagneticPositioningGUI.Algorithms
             AA[8] = datas[2, 2];
         }
 
-        public (float X, float Y, float Z, float Roll, float Yaw, float Pitch) ProvideInfo()
+        public (double X, double Y, double Z, double Roll, double Yaw, double Pitch) ProvideInfo()
         {
             var serialflag = SerialDataDeal();
             if (serialflag == false)
@@ -575,7 +575,7 @@ namespace MagneticPositioningGUI.Algorithms
         double[,] F4_set = { {1,1,-1},{ 1,1,-1 },{ -1,-1,-1 } };
         //double Px, Py, Pz, sumpxpypz;
 
-        public (float X, float Y, float Z, float Roll, float Yaw, float Pitch) ProvideInfoV2()
+        public (double X, double Y, double Z, double Roll, double Yaw, double Pitch) ProvideInfoV2()
         {
             var serialflag = SerialDataDeal();
             if (serialflag == false)

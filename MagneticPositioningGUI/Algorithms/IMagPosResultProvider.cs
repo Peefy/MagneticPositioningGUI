@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace MagneticPositioningGUI.Algorithms
 {
     public interface IMagPosResultProvider
-    {   
-        (float X, float Y, float Z, float Roll, float Yaw, float Pitch) ProvideInfo();
-        (float X, float Y, float Z, float Roll, float Yaw, float Pitch) ProvideInfoV2();
+    {
+        (double X, double Y, double Z, double Roll, double Yaw, double Pitch) ProvideInfo();
+        (double X, double Y, double Z, double Roll, double Yaw, double Pitch) ProvideInfoV2();
         bool StartProvide();
         bool StopProvide();
     }

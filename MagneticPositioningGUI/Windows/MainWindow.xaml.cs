@@ -40,5 +40,18 @@ namespace MagneticPositioningGUI.Windows
             factor = factor - e.Delta / 120 * 0.1f;
             ViewModel.UpdateScaleFactor(factor);
         }
+
+        private void MetroWindow_Closed(object sender, EventArgs e)
+        {
+            ViewModel.SaveCameraData();
+        }
+
+        private void MetroWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.V)
+            {
+                ViewModel.OpenPlotWindowEvent();
+            }
+        }
     }
 }

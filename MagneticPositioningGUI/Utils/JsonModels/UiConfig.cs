@@ -35,6 +35,15 @@ namespace MagneticPositioningGUI.Utils.JsonModels
         [JsonProperty("isDemo")]
         public bool IsDemo { get; set; } = false;
 
+        [JsonProperty("cameraRoll")]
+        public double CameraRoll { get; set; } = 0;
+
+        [JsonProperty("cameraYaw")]
+        public double CameraYaw { get; set; } = 0;
+
+        [JsonProperty("cameraPitch")]
+        public double CameraPitch { get; set; } = 0;
+
     }
 
 }
