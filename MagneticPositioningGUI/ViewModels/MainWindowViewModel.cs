@@ -15,7 +15,7 @@ namespace MagneticPositioningGUI.ViewModels
     public class MainWindowViewModel : BaseViewModel
     {
 
-        private int _uiRefreshDeley = 20;
+        private int _uiRefreshDeley = 10;
         private JsonFileConfig _config;
 
         private double _cameraX;
@@ -151,6 +151,8 @@ namespace MagneticPositioningGUI.ViewModels
 
         public PlotWindow PlotWindow{ get; set; }
 
+        public Thread ProvideThread { get; set; }
+
         public MainWindowViewModel()
         {
             _config = JsonFileConfig.Instance;
@@ -173,12 +175,20 @@ namespace MagneticPositioningGUI.ViewModels
                         {
                             if (IsUpdateUi == true)
                             {
-                                (X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfoV2();
-                                RenewStatusText(X, Y, Z, Roll, Yaw, Pitch);
+                                var result = ResultProvider.ProvideInfo();
+                                X = result.X;
+                                Y = result.Y;
+                                Z = -result.Z;
+                                Roll = result.Roll;
+                                Yaw = result.Yaw;
+                                Pitch = result.Pitch;
+                                //(X, Y, Z, _, _, _) = ResultProvider.ProvideInfo();
+                                RenewStatusText(result.X, result.Y, result.Z,
+                                    result.Roll, result.Yaw, result.Pitch);
                             }
                             else
                             {
-                                var result = ResultProvider.ProvideInfoV2();
+                                var result = ResultProvider.ProvideInfo();
                                 RenewStatusText(result.X, result.Y, result.Z,
                                     result.Roll, result.Yaw, result.Pitch);                       
                             }

@@ -23,7 +23,7 @@ namespace MagneticPositioningGUI.Utils
             return sum;
         }
 
-        public static double MathRoundWithDigit(double value, int digit = 2)
+        public static double MathRoundWithDigit(double value, int digit = 4)
         {
             return Math.Round(value, digit);
         }
