@@ -241,8 +241,7 @@ namespace MagneticPositioningGUI.ViewModels
 
         public void OpenPlotWindowEvent()
         {
-            if(PlotWindow == null)
-                PlotWindow = new PlotWindow(new PlotWindowViewModel());
+            PlotWindow = new PlotWindow(new PlotWindowViewModel());
             PlotWindow.Show();
         }
 

@@ -44,7 +44,7 @@
             Grid.Column="0"
             Background="{StaticResource ChartPlotterBrush}">
             <d3:ChartPlotter.VerticalAxis>
-                <d3:VerticalIntegerAxis Foreground="Black" />
+                <d3:VerticalAxis Foreground="Black" />
             </d3:ChartPlotter.VerticalAxis>
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
@@ -59,7 +59,7 @@
             Grid.Column="1"
             Background="{StaticResource ChartPlotterBrush}">
             <d3:ChartPlotter.VerticalAxis>
-                <d3:VerticalIntegerAxis Foreground="Black" />
+                <d3:VerticalAxis Foreground="Black" />
             </d3:ChartPlotter.VerticalAxis>
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
@@ -74,7 +74,7 @@
             Grid.Column="2"
             Background="{StaticResource ChartPlotterBrush}">
             <d3:ChartPlotter.VerticalAxis>
-                <d3:VerticalIntegerAxis Foreground="Black" />
+                <d3:VerticalAxis Foreground="Black" />
             </d3:ChartPlotter.VerticalAxis>
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
@@ -89,7 +89,7 @@
             Grid.Column="0"
             Background="{StaticResource ChartPlotterBrush}">
             <d3:ChartPlotter.VerticalAxis>
-                <d3:VerticalIntegerAxis Foreground="Black" />
+                <d3:VerticalAxis Foreground="Black" />
             </d3:ChartPlotter.VerticalAxis>
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
@@ -104,7 +104,7 @@
             Grid.Column="1"
             Background="{StaticResource ChartPlotterBrush}">
             <d3:ChartPlotter.VerticalAxis>
-                <d3:VerticalIntegerAxis Foreground="Black" />
+                <d3:VerticalAxis Foreground="Black" />
             </d3:ChartPlotter.VerticalAxis>
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
@@ -119,7 +119,7 @@
             Grid.Column="2"
             Background="{StaticResource ChartPlotterBrush}">
             <d3:ChartPlotter.VerticalAxis>
-                <d3:VerticalIntegerAxis Foreground="Black" />
+                <d3:VerticalAxis Foreground="Black" />
             </d3:ChartPlotter.VerticalAxis>
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />

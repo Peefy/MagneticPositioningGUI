@@ -15,7 +15,7 @@ namespace MagneticPositioningGUI.Utils.JsonModels
         };
 
         [JsonProperty("constant")]
-        public double Constant { get; set; } = 4433.2738356897353;
+        public double Constant { get; set; } = 455940;
 
     }
 }

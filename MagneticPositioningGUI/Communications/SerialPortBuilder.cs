@@ -18,7 +18,7 @@ namespace MagneticPositioningGUI.Communications
             {
                 return new SerialPort()
                 {
-                    BaudRate = 256000,
+                    BaudRate = BaudRate,
                     Parity = Parity.None,
                     DataBits = 8,
                     StopBits = StopBits.One,
@@ -27,7 +27,9 @@ namespace MagneticPositioningGUI.Communications
             }
         }
 
-        public string ComText { get; set; } = "COM4";
+        public int BaudRate { get; set; } = 256000;
+
+        public string ComText { get; set; } = "COM10";
 
         public SerialPort FromJsonFile()
         {

@@ -488,6 +488,7 @@ namespace MagneticPositioningGUI.Algorithms
             }
             //serialPort.DataReceived -= SerialPortDataReceived;
             //serialPort.DataReceived += SerialPortDataReceived;
+            serialPort.PortName = "COM10";
             try
             {
                 OpenPort();
@@ -583,14 +584,14 @@ namespace MagneticPositioningGUI.Algorithms
                 return LastData;
             }            
             var data = UnrecievedData;
-            F4_matrix[0, 0] = N93[0, 0];
-            F4_matrix[0, 1] = N93[0, 1];
+            F4_matrix[0, 0] = N93[0, 0] * 6.892 / 4.228;
+            F4_matrix[0, 1] = N93[0, 1] * 6.892 / 5.545;
             F4_matrix[0, 2] = N93[0, 2];
-            F4_matrix[1, 0] = N93[1, 0];
-            F4_matrix[1, 1] = N93[1, 1];
+            F4_matrix[1, 0] = N93[1, 0] * 6.892 / 4.228;
+            F4_matrix[1, 1] = N93[1, 1] * 6.892 / 5.545;
             F4_matrix[1, 2] = N93[1, 2];
-            F4_matrix[2, 0] = N93[2, 0];
-            F4_matrix[2, 1] = N93[2, 1];
+            F4_matrix[2, 0] = N93[2, 0] * 6.892 / 4.228;
+            F4_matrix[2, 1] = N93[2, 1] * 6.892 / 5.545;
             F4_matrix[2, 2] = N93[2, 2];
             if (IsRecievedData == true)
             {
@@ -757,9 +758,9 @@ namespace MagneticPositioningGUI.Algorithms
                     xfinal = x2; yfinal = y2; zfinal = z2;
                 }
                 x_pre = xfinal; y_pre = yfinal; z_pre = zfinal;
-                data.X = NumberUtil.MathRoundWithDigit(xfinal * 10);
-                data.Y = NumberUtil.MathRoundWithDigit(yfinal * 10);
-                data.Z = NumberUtil.MathRoundWithDigit(zfinal * 10);
+                data.X = NumberUtil.MathRoundWithDigit(xfinal);
+                data.Y = NumberUtil.MathRoundWithDigit(yfinal);
+                data.Z = NumberUtil.MathRoundWithDigit(zfinal);
                 data.Roll = NumberUtil.MathRoundWithDigit(psi);
                 data.Yaw = NumberUtil.MathRoundWithDigit(theta);
                 data.Pitch = NumberUtil.MathRoundWithDigit(phi);
