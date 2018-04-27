@@ -52,6 +52,10 @@ namespace MagneticPositioningGUI.Windows
             {
                 ViewModel.OpenPlotWindowEvent();
             }
+            if(e.Key == Key.D)
+            {
+                ViewModel.ChangeIsDemo();
+            }
         }
     }
 }

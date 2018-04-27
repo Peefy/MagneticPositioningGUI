@@ -175,7 +175,6 @@ namespace MagneticPositioningGUI.ViewModels
                             {
                                 (X, Y, Z, Roll, Yaw, Pitch) = ResultProvider.ProvideInfoV2();
                                 RenewStatusText(X, Y, Z, Roll, Yaw, Pitch);
-                                StatusText = $"X:{X};Y:{Y};Z:{Z};Roll:{Roll};Yaw:{Yaw};Pitch:{Pitch}";
                             }
                             else
                             {
@@ -209,6 +208,12 @@ namespace MagneticPositioningGUI.ViewModels
         {
             StatusText = $"X:{x}\r\nY:{y}\r\nZ:{z}\r\nRoll:{roll}\r\nYaw:{yaw}\r\nPitch:{pitch}\r\n";
             RenewPlotViewData(x, y, z, roll, yaw, pitch);
+        }
+
+        public void ChangeIsDemo()
+        {
+            IsDemo = !IsDemo;
+            _config.UiConfig.IsDemo = IsDemo;
         }
 
         public void ControlButtonEvent()
