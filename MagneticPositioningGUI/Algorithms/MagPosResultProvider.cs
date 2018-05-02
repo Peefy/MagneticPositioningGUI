@@ -241,11 +241,8 @@ namespace MagneticPositioningGUI.Algorithms
             }
             else if(ports.Length == 1)
             {
-                serialPort.PortName = ports.FirstOrDefault();
+                serialPort.PortName = ports[0];
             }
-            //serialPort.DataReceived -= SerialPortDataReceived;
-            //serialPort.DataReceived += SerialPortDataReceived;
-            serialPort.PortName = "COM10";
             try
             {
                 OpenPort();
@@ -505,13 +502,21 @@ namespace MagneticPositioningGUI.Algorithms
                     xfinal = x2; yfinal = y2; zfinal = z2;
                 }
                 x_pre = xfinal; y_pre = yfinal; z_pre = zfinal;
-                data.X = NumberUtil.MathRoundWithDigit(x1) ;
-                data.Y = NumberUtil.MathRoundWithDigit(c1) ;
-                data.Z = NumberUtil.MathRoundWithDigit(z1) ;
-                data.Roll = NumberUtil.MathRoundWithDigit(psi);
-                data.Yaw = NumberUtil.MathRoundWithDigit(phi);
-                data.Pitch = NumberUtil.MathRoundWithDigit(theta);
+                data.X = NumberUtil.MathRoundWithDigit(x1);
+                data.Y = NumberUtil.MathRoundWithDigit(c1);
+                data.Z = NumberUtil.MathRoundWithDigit(z1);
+                data.Roll = NumberUtil.MathRoundWithDigit(IsNanAndReserve(psi, data.Roll));
+                data.Yaw = NumberUtil.MathRoundWithDigit(IsNanAndReserve(phi, data.Yaw));
+                data.Pitch = NumberUtil.MathRoundWithDigit(IsNanAndReserve(theta, data.Pitch));
                 LastData = data;
+
+                double IsNanAndReserve(double value, double last)
+                {
+                    if (double.IsNaN(value) == true)
+                        return last;
+                    return value;
+                }
+
             }
             return data;
         }

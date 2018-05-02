@@ -15,7 +15,7 @@ namespace MagneticPositioningGUI.ViewModels
     public class MainWindowViewModel : BaseViewModel
     {
 
-        private int _uiRefreshDeley = 10;
+        private int _uiRefreshDeley = 30;
         private JsonFileConfig _config;
 
         private double _cameraX;
@@ -149,9 +149,7 @@ namespace MagneticPositioningGUI.ViewModels
 
         public Command OpenPlotWindowCommand { get; set; }
 
-        public PlotWindow PlotWindow{ get; set; }
-
-        public Thread ProvideThread { get; set; }
+        public PlotWindow PlotWindow { get; set; }
 
         public MainWindowViewModel()
         {
@@ -176,9 +174,9 @@ namespace MagneticPositioningGUI.ViewModels
                             if (IsUpdateUi == true)
                             {
                                 var result = ResultProvider.ProvideInfo();
-                                X = result.X;
-                                Y = result.Y;
-                                Z = -result.Z;
+                                X = result.X * 10;
+                                Y = result.Y * 10;
+                                Z = -result.Z * 10;
                                 Roll = result.Roll;
                                 Yaw = result.Yaw;
                                 Pitch = result.Pitch;
@@ -190,7 +188,7 @@ namespace MagneticPositioningGUI.ViewModels
                             {
                                 var result = ResultProvider.ProvideInfo();
                                 RenewStatusText(result.X, result.Y, result.Z,
-                                    result.Roll, result.Yaw, result.Pitch);                       
+                                    result.Roll, result.Yaw, result.Pitch);
                             }
                         }
                         else
@@ -206,7 +204,7 @@ namespace MagneticPositioningGUI.ViewModels
                         }
                         if (IsUpdateUi == true)
                         {
-                            Quaternion = NumberUtil.EulerAnglesToQuaternion(Roll, Pitch, Yaw);
+                            //Quaternion = NumberUtil.EulerAnglesToQuaternion(Roll, Pitch, Yaw);
                         }
                     }
                 }

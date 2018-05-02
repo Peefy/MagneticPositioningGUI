@@ -36,6 +36,12 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="a">
+      <HintPath>..\a.dll</HintPath>
+    </Reference>
+    <Reference Include="aNative">
+      <HintPath>..\aNative.dll</HintPath>
+    </Reference>
     <Reference Include="ArkLight, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ArkLight.0.0.3\lib\net45\ArkLight.dll</HintPath>
     </Reference>
