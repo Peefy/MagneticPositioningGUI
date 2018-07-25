@@ -14,11 +14,11 @@
     BorderThickness="1"
     Closed="MetroWindow_Closed"
     GlowBrush="Black"
+    KeyDown="MetroWindow_KeyDown"
     MouseWheel="MetroWindow_MouseWheel"
     ResizeMode="CanResizeWithGrip"
     WindowStartupLocation="CenterScreen"
     WindowTransitionsEnabled="False"
-    KeyDown="MetroWindow_KeyDown"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -34,12 +34,12 @@
             FontSize="18" />
         <Grid Grid.Row="1">
             <Viewport3D
-                Name="viewCube"
+                Name="view"
                 Grid.Column="0"
                 Margin="0">
                 <ModelVisual3D>
                     <ModelVisual3D.Content>
-                        <Model3DGroup>
+                        <Model3DGroup x:Name="group">
                             <!--  Lights  -->
                             <AmbientLight Color="Gray" />
                             <DirectionalLight Direction="1,-2,-3" Color="Gray" />
@@ -282,6 +282,21 @@
                                             <AxisAngleRotation3D Angle="90" Axis="1 0 0" />
                                         </RotateTransform3D.Rotation>
                                     </RotateTransform3D>
+                                </GeometryModel3D.Transform>
+                            </GeometryModel3D>
+                            <!--  Lines  -->
+                            <GeometryModel3D>
+                                <GeometryModel3D.Material>
+                                    <DiffuseMaterial Brush="Red" />
+                                </GeometryModel3D.Material>
+                                <GeometryModel3D.Geometry>
+                                    <MeshGeometry3D Positions="-0.05,-0.05,0.05 0.05,-0.05,-0.05 0.05,0.05,-0.05 -0.05,0.05,-0.05 -0.05,0.05,0.05 -0.05,-0.05,0.05 0.05,-0.05,0.05 0.05,0.05,0.05" TriangleIndices="0,2,1 0,3,2 0,4,3 0,5,4 0,1,6 0,6,5 3,4,7 3,7,2 4,5,6 4,6,7 7,6,1 7,1,2" />
+                                </GeometryModel3D.Geometry>
+                                <GeometryModel3D.Transform>
+                                    <TranslateTransform3D
+                                        OffsetX="0"
+                                        OffsetY="0"
+                                        OffsetZ="0" />
                                 </GeometryModel3D.Transform>
                             </GeometryModel3D>
                         </Model3DGroup>
