@@ -11,7 +11,6 @@ namespace MagneticPositioningGUI.Communications
 {
     public class SerialPortBuilder
     {
-
         public SerialPort Default
         {
             get

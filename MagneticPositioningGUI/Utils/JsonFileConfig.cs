@@ -11,9 +11,6 @@ using MagneticPositioningGUI.Utils.JsonModels;
 
 namespace MagneticPositioningGUI.Utils
 {
-    /// <summary>
-    /// config.json 配置文件操作
-    /// </summary>
     public class JsonFileConfig
     {
         [JsonIgnore]
@@ -24,22 +21,13 @@ namespace MagneticPositioningGUI.Utils
             _lazyInstance ?? (_lazyInstance = new Lazy<JsonFileConfig>(() => ReadFromFile(),
                 LazyThreadSafetyMode.PublicationOnly));
 
-        /// <summary>
-        /// 配置文件静态实例
-        /// </summary>
         [JsonIgnore]
         public static JsonFileConfig Instance => LazyInstance.Value;
 
-        /// <summary>
-        /// 配置文件路径和文件名称
-        /// </summary>
         [JsonIgnore]
         public static string PathAndFileName { get; set; } =
             Path.Combine(Environment.CurrentDirectory, "config.json");
 
-        /// <summary>
-        /// 配置写入文件
-        /// </summary>
         public void WriteToFile()
         {
             try
@@ -53,10 +41,6 @@ namespace MagneticPositioningGUI.Utils
             }
         }
 
-        /// <summary>
-        /// 从文件读取配置
-        /// </summary>
-        /// <returns></returns>
         public static JsonFileConfig ReadFromFile()
         {
             try
@@ -85,9 +69,6 @@ namespace MagneticPositioningGUI.Utils
         [JsonProperty("plotConfig")]
         public PlotConfig PlotConfig { get; set; }
 
-        /// <summary>
-        /// 无参构造函数
-        /// </summary>
         public JsonFileConfig()
         {
             ComConfig = new ComConfig();
@@ -96,10 +77,6 @@ namespace MagneticPositioningGUI.Utils
             PlotConfig = new PlotConfig();
         }
 
-        /// <summary>
-        /// 用json字符串更改配置
-        /// </summary>
-        /// <param name="jsonString"></param>
         public void SetConfig(string jsonString)
         {
             try
@@ -116,10 +93,6 @@ namespace MagneticPositioningGUI.Utils
             }
         }
 
-        /// <summary>
-        /// 返回配置文件的json字符串
-        /// </summary>
-        /// <returns></returns>
         public override string ToString()
         {
             try

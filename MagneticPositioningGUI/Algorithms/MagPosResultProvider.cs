@@ -243,13 +243,6 @@ namespace MagneticPositioningGUI.Algorithms
             {
                 serialPort.PortName = ports[0];
             }
-<<<<<<< HEAD
-            //serialPort.DataReceived -= SerialPortDataReceived;
-            //serialPort.DataReceived += SerialPortDataReceived;
-            serialPort.PortName = "COM12";
-            serialPort.BaudRate = 115200;
-=======
->>>>>>> 26b06bf9fe41db3015bf1236ae7aa6f3a45eaf63
             try
             {
                 OpenPort();
