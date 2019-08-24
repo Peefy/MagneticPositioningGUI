@@ -49,9 +49,9 @@
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
             </d3:ChartPlotter.HorizontalAxis>
-            <d3:Header Content="X" Foreground="Black" />
-            <d3:VerticalAxisTitle Content="Value" Foreground="Black" />
-            <d3:HorizontalAxisTitle Content="Time" Foreground="Black" />
+            <d3:Header Content="温度" Foreground="Black" />
+            <d3:VerticalAxisTitle Content="值" Foreground="Black" />
+            <d3:HorizontalAxisTitle Content="时间" Foreground="Black" />
         </d3:ChartPlotter>
         <d3:ChartPlotter
             x:Name="yplotter"
@@ -64,9 +64,9 @@
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
             </d3:ChartPlotter.HorizontalAxis>
-            <d3:Header Content="Y" Foreground="Black" />
-            <d3:VerticalAxisTitle Content="Value" Foreground="Black" />
-            <d3:HorizontalAxisTitle Content="Time" Foreground="Black" />
+            <d3:Header Content="压力" Foreground="Black" />
+            <d3:VerticalAxisTitle Content="值" Foreground="Black" />
+            <d3:HorizontalAxisTitle Content="时间" Foreground="Black" />
         </d3:ChartPlotter>
         <d3:ChartPlotter
             x:Name="zplotter"
@@ -79,9 +79,9 @@
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
             </d3:ChartPlotter.HorizontalAxis>
-            <d3:Header Content="Z" Foreground="Black" />
-            <d3:VerticalAxisTitle Content="Value" Foreground="Black" />
-            <d3:HorizontalAxisTitle Content="Time" Foreground="Black" />
+            <d3:Header Content="谐振频率" Foreground="Black" />
+            <d3:VerticalAxisTitle Content="值" Foreground="Black" />
+            <d3:HorizontalAxisTitle Content="时间" Foreground="Black" />
         </d3:ChartPlotter>
         <d3:ChartPlotter
             x:Name="rollplotter"
@@ -94,9 +94,9 @@
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
             </d3:ChartPlotter.HorizontalAxis>
-            <d3:Header Content="Row" Foreground="Black" />
-            <d3:VerticalAxisTitle Content="Value" Foreground="Black" />
-            <d3:HorizontalAxisTitle Content="Time" Foreground="Black" />
+            <d3:Header Content="频率" Foreground="Black" />
+            <d3:VerticalAxisTitle Content="值" Foreground="Black" />
+            <d3:HorizontalAxisTitle Content="时间" Foreground="Black" />
         </d3:ChartPlotter>
         <d3:ChartPlotter
             x:Name="yawplotter"
@@ -109,9 +109,9 @@
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
             </d3:ChartPlotter.HorizontalAxis>
-            <d3:Header Content="Yaw" Foreground="Black" />
-            <d3:VerticalAxisTitle Content="Value" Foreground="Black" />
-            <d3:HorizontalAxisTitle Content="Time" Foreground="Black" />
+            <d3:Header Content="增益" Foreground="Black" />
+            <d3:VerticalAxisTitle Content="值" Foreground="Black" />
+            <d3:HorizontalAxisTitle Content="时间" Foreground="Black" />
         </d3:ChartPlotter>
         <d3:ChartPlotter
             x:Name="pitchplotter"
@@ -124,9 +124,9 @@
             <d3:ChartPlotter.HorizontalAxis>
                 <d3:HorizontalIntegerAxis Foreground="Black" />
             </d3:ChartPlotter.HorizontalAxis>
-            <d3:Header Content="Pitch" Foreground="Black" />
-            <d3:VerticalAxisTitle Content="Value" Foreground="Black" />
-            <d3:HorizontalAxisTitle Content="Time" Foreground="Black" />
+            <d3:Header Content="标准频率" Foreground="Black" />
+            <d3:VerticalAxisTitle Content="值" Foreground="Black" />
+            <d3:HorizontalAxisTitle Content="时间" Foreground="Black" />
         </d3:ChartPlotter>
     </Grid>
 </Controls:MetroWindow>

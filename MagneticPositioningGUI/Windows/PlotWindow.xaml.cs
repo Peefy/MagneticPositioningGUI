@@ -79,6 +79,12 @@ namespace MagneticPositioningGUI.Windows
 
         private void AnimatedPlot(object sender, EventArgs e)
         {
+            x = 20 + new Random().NextDouble();
+            y = 0.45 + new Random().NextDouble() / 10.0;
+            z = 301 + new Random().NextDouble();
+            roll = 821 + new Random().NextDouble();
+            yaw = 45 + new Random().NextDouble();
+            pitch = 1012 + new Random().NextDouble();
             XDataSource.AppendAsync(base.Dispatcher, new Point(i, x));
             YDataSource.AppendAsync(base.Dispatcher, new Point(i, y));
             ZDataSource.AppendAsync(base.Dispatcher, new Point(i, z));
